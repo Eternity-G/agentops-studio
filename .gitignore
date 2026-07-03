@@ -1,0 +1,32 @@
+# Python bytecode and cache directories.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments should stay local to each developer machine.
+.venv/
+venv/
+env/
+
+# Local environment files can contain API keys and database credentials.
+.env
+.env.*
+!.env.example
+
+# Test, coverage, and type-checker caches.
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts.
+build/
+dist/
+*.egg-info/
+
+# IDE and OS metadata.
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
