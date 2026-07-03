@@ -8,10 +8,14 @@ version = "0.1.0"
 description = "A learnable Agent engineering platform focused on planning, tools, memory, tracing, and evaluation."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
 
 [project.optional-dependencies]
 dev = [
+    "httpx2>=2.0.0",
     "pytest>=8.0",
 ]
 
