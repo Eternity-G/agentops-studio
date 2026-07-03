@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 4 步：Mock 模型适配层**。
+当前已完成 **阶段 1 的第 5 步：Planner 最小实现**。
 
 已经具备的能力：
 
@@ -18,11 +18,12 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - 已定义统一模型提供商接口。
 - `MockProvider` 可以在无 API key 情况下返回符合 `ExecutionPlan` 的结构化计划。
 - Provider 工厂可以根据配置创建模型适配器。
+- `Planner` 可以接收 `TaskInput`，调用 provider，并返回合法 `ExecutionPlan`。
+- 已跑通 “任务输入 -> MockProvider -> 结构化计划” 的最小链路。
 
 当前还没有实现：
 
 - 真实大模型调用。
-- Agent planning。
 - 工具调用。
 - RAG 或数据库。
 - 记忆系统。
@@ -33,6 +34,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 ```text
 app/
   __init__.py
+  planner.py
   schemas.py
   settings.py
   api/
@@ -45,6 +47,7 @@ app/
     mock.py
 tests/
   test_health.py
+  test_planner.py
   test_providers.py
   test_project_import.py
   test_schemas.py
@@ -54,6 +57,7 @@ docs/
   第2步-FastAPI健康检查.md
   第3步-Pydantic-Schema.md
   第4步-Mock模型适配层.md
+  第5步-Planner最小实现.md
 .env.example
 pyproject.toml
 ```
@@ -102,7 +106,7 @@ python -m pytest
 期望结果：
 
 ```text
-22 passed
+26 passed
 ```
 
 Schema 导出：
@@ -130,6 +134,18 @@ ProviderInfo(name='mock', model='mock-planner-v1', is_mock=True)
 ExecutionPlan 3
 ```
 
+Planner 输出验证：
+
+```bash
+python -c "import asyncio; from app.planner import Planner; plan = asyncio.run(Planner().create_plan_from_text('生成计划')); print(type(plan).__name__, len(plan.steps), plan.steps[0].goal)"
+```
+
+期望结果包含：
+
+```text
+ExecutionPlan 3 理解用户任务
+```
+
 健康检查响应：
 
 ```json
@@ -149,17 +165,18 @@ ExecutionPlan 3
 - [第 2 步：FastAPI 健康检查](docs/第2步-FastAPI健康检查.md)
 - [第 3 步：Pydantic Schema](docs/第3步-Pydantic-Schema.md)
 - [第 4 步：Mock 模型适配层](docs/第4步-Mock模型适配层.md)
+- [第 5 步：Planner 最小实现](docs/第5步-Planner最小实现.md)
 
 ## 下一步计划
 
-下一步是 **第 5 步：Planner 最小实现**。
+下一步是 **第 6 步：状态机主链路**。
 
 目标：
 
-- 基于 `TaskInput` 调用 provider。
-- 得到符合 `ExecutionPlan` 的计划。
-- 把 Planner 设计成独立模块，不直接依赖具体模型厂商。
-- 编写测试验证 Planner 能把用户任务转成结构化 plan。
+- 串起 `plan -> act -> reflect -> finalize` 的最小状态流。
+- 暂时使用 mock executor，不做真实工具调用。
+- 定义任务运行状态，保存 plan、步骤结果和 final answer。
+- 编写测试验证一次任务能产生完整 state。
 
 完成后应能验证：
 
@@ -169,6 +186,7 @@ python -m pytest
 
 并能通过测试证明：
 
-- 不配置真实模型 API key 也能生成结构化计划。
-- Planner 返回值可以被 `ExecutionPlan` 校验。
-- 后续 Agent 主链路可以复用 Planner，而不是直接调用 provider。
+- 输入任务后能得到完整状态对象。
+- 状态中包含 `ExecutionPlan`。
+- 状态中包含最终答案占位结果。
+- 后续 Trace 和工具调用可以接入这条主链路。
