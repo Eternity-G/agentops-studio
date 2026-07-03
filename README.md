@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 5 步：Planner 最小实现**。
+当前已完成 **阶段 1 的第 6 步：状态机主链路**。
 
 已经具备的能力：
 
@@ -20,6 +20,9 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - Provider 工厂可以根据配置创建模型适配器。
 - `Planner` 可以接收 `TaskInput`，调用 provider，并返回合法 `ExecutionPlan`。
 - 已跑通 “任务输入 -> MockProvider -> 结构化计划” 的最小链路。
+- `AgentRuntime` 可以串起 `plan -> act -> reflect -> finalize` 的最小状态流。
+- 当前使用 mock executor，为每个计划步骤生成可观测的执行结果。
+- `AgentState` 可以保存任务输入、计划、步骤结果、最终答案和错误信息。
 
 当前还没有实现：
 
@@ -34,6 +37,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 ```text
 app/
   __init__.py
+  agent.py
   planner.py
   schemas.py
   settings.py
@@ -46,6 +50,7 @@ app/
     factory.py
     mock.py
 tests/
+  test_agent.py
   test_health.py
   test_planner.py
   test_providers.py
@@ -58,6 +63,7 @@ docs/
   第3步-Pydantic-Schema.md
   第4步-Mock模型适配层.md
   第5步-Planner最小实现.md
+  第6步-状态机主链路.md
 .env.example
 pyproject.toml
 ```
@@ -106,7 +112,7 @@ python -m pytest
 期望结果：
 
 ```text
-26 passed
+30 passed
 ```
 
 Schema 导出：
@@ -146,6 +152,19 @@ python -c "import asyncio; from app.planner import Planner; plan = asyncio.run(P
 ExecutionPlan 3 理解用户任务
 ```
 
+Agent 主链路验证：
+
+```bash
+python -c "import asyncio; from app.agent import AgentRuntime; state = asyncio.run(AgentRuntime().run_from_text('生成计划')); print(state.status); print(type(state.plan).__name__, len(state.step_results), state.final_answer.completed)"
+```
+
+期望结果包含：
+
+```text
+completed
+ExecutionPlan 3 True
+```
+
 健康检查响应：
 
 ```json
@@ -166,17 +185,18 @@ ExecutionPlan 3 理解用户任务
 - [第 3 步：Pydantic Schema](docs/第3步-Pydantic-Schema.md)
 - [第 4 步：Mock 模型适配层](docs/第4步-Mock模型适配层.md)
 - [第 5 步：Planner 最小实现](docs/第5步-Planner最小实现.md)
+- [第 6 步：状态机主链路](docs/第6步-状态机主链路.md)
 
 ## 下一步计划
 
-下一步是 **第 6 步：状态机主链路**。
+下一步是 **第 7 步：基础 Trace 与 API Demo**。
 
 目标：
 
-- 串起 `plan -> act -> reflect -> finalize` 的最小状态流。
-- 暂时使用 mock executor，不做真实工具调用。
-- 定义任务运行状态，保存 plan、步骤结果和 final answer。
-- 编写测试验证一次任务能产生完整 state。
+- 给每次 Agent 运行分配 `task_id` 和 `trace_id`。
+- 记录 plan、act、reflect、finalize 的基础 trace event。
+- 增加 `POST /tasks/run` API，返回 final answer 和 trace 信息。
+- 编写测试验证 API 能端到端跑通最小 Agent 主链路。
 
 完成后应能验证：
 
@@ -186,7 +206,6 @@ python -m pytest
 
 并能通过测试证明：
 
-- 输入任务后能得到完整状态对象。
-- 状态中包含 `ExecutionPlan`。
-- 状态中包含最终答案占位结果。
-- 后续 Trace 和工具调用可以接入这条主链路。
+- `POST /tasks/run` 返回 200。
+- 响应中包含 `task_id`、`trace_id`、`final_answer`。
+- Trace 中至少包含 `plan`、`act`、`reflect`、`finalize` 事件。
