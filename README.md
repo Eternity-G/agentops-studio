@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 6 步：状态机主链路**。
+当前已完成 **阶段 1 的第 7 步：基础 Trace 与 API Demo**。
 
 已经具备的能力：
 
@@ -23,6 +23,8 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `AgentRuntime` 可以串起 `plan -> act -> reflect -> finalize` 的最小状态流。
 - 当前使用 mock executor，为每个计划步骤生成可观测的执行结果。
 - `AgentState` 可以保存任务输入、计划、步骤结果、最终答案和错误信息。
+- `AgentState` 已包含 `task_id`、`trace_id` 和基础 `trace_events`。
+- `POST /tasks/run` 可以通过 HTTP 跑通最小 Agent 主链路。
 
 当前还没有实现：
 
@@ -57,6 +59,7 @@ tests/
   test_project_import.py
   test_schemas.py
   test_settings.py
+  test_task_api.py
 docs/
   第1步-项目骨架与环境.md
   第2步-FastAPI健康检查.md
@@ -64,6 +67,7 @@ docs/
   第4步-Mock模型适配层.md
   第5步-Planner最小实现.md
   第6步-状态机主链路.md
+  第7步-基础Trace与API-Demo.md
 .env.example
 pyproject.toml
 ```
@@ -94,6 +98,14 @@ python -m uvicorn app.api.routes:app --reload
 curl http://localhost:8000/health
 ```
 
+运行 Agent API Demo：
+
+```bash
+curl -X POST http://localhost:8000/tasks/run ^
+  -H "Content-Type: application/json" ^
+  -d "{\"task\":\"通过 API 跑通 Agent 主链路\"}"
+```
+
 查看接口文档：
 
 ```text
@@ -112,7 +124,7 @@ python -m pytest
 期望结果：
 
 ```text
-30 passed
+34 passed
 ```
 
 Schema 导出：
@@ -165,6 +177,18 @@ completed
 ExecutionPlan 3 True
 ```
 
+API Demo 验证：
+
+```bash
+python -c "from fastapi.testclient import TestClient; from app.api.routes import create_app; body = TestClient(create_app()).post('/tasks/run', json={'task':'demo'}).json(); print(body['status'], bool(body['task_id']), bool(body['trace_id']), len(body['trace_events']))"
+```
+
+期望结果包含：
+
+```text
+completed True True 8
+```
+
 健康检查响应：
 
 ```json
@@ -186,17 +210,18 @@ ExecutionPlan 3 True
 - [第 4 步：Mock 模型适配层](docs/第4步-Mock模型适配层.md)
 - [第 5 步：Planner 最小实现](docs/第5步-Planner最小实现.md)
 - [第 6 步：状态机主链路](docs/第6步-状态机主链路.md)
+- [第 7 步：基础 Trace 与 API Demo](docs/第7步-基础Trace与API-Demo.md)
 
 ## 下一步计划
 
-下一步是 **第 7 步：基础 Trace 与 API Demo**。
+下一步是 **第 8 步：工具层与 Mock Tool Registry**。
 
 目标：
 
-- 给每次 Agent 运行分配 `task_id` 和 `trace_id`。
-- 记录 plan、act、reflect、finalize 的基础 trace event。
-- 增加 `POST /tasks/run` API，返回 final answer 和 trace 信息。
-- 编写测试验证 API 能端到端跑通最小 Agent 主链路。
+- 定义统一工具接口。
+- 实现 mock 工具注册表。
+- 让 `act` 阶段不再直接生成字符串，而是通过 mock tool 执行步骤。
+- 编写测试验证工具注册、工具调用和失败边界。
 
 完成后应能验证：
 
@@ -206,6 +231,6 @@ python -m pytest
 
 并能通过测试证明：
 
-- `POST /tasks/run` 返回 200。
-- 响应中包含 `task_id`、`trace_id`、`final_answer`。
-- Trace 中至少包含 `plan`、`act`、`reflect`、`finalize` 事件。
+- 每个工具都有名称、描述、输入 schema 和执行结果。
+- AgentRuntime 可以通过工具层生成 step result。
+- 工具调用失败时能返回可解释错误。

@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from uuid import uuid4
 
 from pydantic import Field
 
@@ -38,14 +39,26 @@ class StepExecutionResult(StrictSchema):
     output: str = Field(description="Human-readable mock output for this step.")
 
 
+class TraceEvent(StrictSchema):
+    """Minimal trace event recorded during one Agent run."""
+
+    event_id: str = Field(description="Unique id for this trace event.")
+    trace_id: str = Field(description="Trace id shared by all events in one Agent run.")
+    stage: str = Field(description="Runtime stage, such as plan, act, reflect, or finalize.")
+    message: str = Field(description="Human-readable event message.")
+
+
 class AgentState(StrictSchema):
     """State object passed through the minimal Agent flow."""
 
+    task_id: str = Field(default_factory=lambda: str(uuid4()))
+    trace_id: str = Field(default_factory=lambda: str(uuid4()))
     task_input: TaskInput
     status: AgentRunStatus = AgentRunStatus.CREATED
     plan: ExecutionPlan | None = None
     step_results: list[StepExecutionResult] = Field(default_factory=list)
     final_answer: FinalAnswer | None = None
+    trace_events: list[TraceEvent] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
 
 
@@ -72,6 +85,7 @@ class AgentRuntime:
         except Exception as exc:  # pragma: no cover - defensive boundary for future runtime errors.
             state.status = AgentRunStatus.FAILED
             state.errors.append(str(exc))
+            self._record_trace(state, stage="failed", message=str(exc))
 
         return state
 
@@ -83,8 +97,14 @@ class AgentRuntime:
     async def _plan(self, state: AgentState) -> AgentState:
         """Create a structured plan from the task input."""
 
+        self._record_trace(state, stage="plan", message="start planning")
         state.plan = await self._planner.create_plan(state.task_input)
         state.status = AgentRunStatus.PLANNED
+        self._record_trace(
+            state,
+            stage="plan",
+            message=f"created execution plan with {len(state.plan.steps)} steps",
+        )
         return state
 
     def _act(self, state: AgentState) -> AgentState:
@@ -97,6 +117,7 @@ class AgentRuntime:
         if state.plan is None:
             raise ValueError("cannot act before planning")
 
+        self._record_trace(state, stage="act", message="start mock execution")
         state.step_results = [
             StepExecutionResult(
                 step_id=step.step_id,
@@ -106,6 +127,11 @@ class AgentRuntime:
             for step in state.plan.steps
         ]
         state.status = AgentRunStatus.ACTED
+        self._record_trace(
+            state,
+            stage="act",
+            message=f"created {len(state.step_results)} mock step results",
+        )
         return state
 
     def _reflect(self, state: AgentState) -> AgentState:
@@ -114,6 +140,7 @@ class AgentRuntime:
         if state.plan is None:
             raise ValueError("cannot reflect before planning")
 
+        self._record_trace(state, stage="reflect", message="start reflection")
         planned_step_ids = {step.step_id for step in state.plan.steps}
         completed_step_ids = {
             result.step_id for result in state.step_results if result.status == StepStatus.COMPLETED
@@ -125,6 +152,7 @@ class AgentRuntime:
             raise ValueError(f"missing completed step results: {missing}")
 
         state.status = AgentRunStatus.REFLECTED
+        self._record_trace(state, stage="reflect", message="all planned steps completed")
         return state
 
     def _finalize(self, state: AgentState) -> AgentState:
@@ -133,12 +161,26 @@ class AgentRuntime:
         if state.plan is None:
             raise ValueError("cannot finalize before planning")
 
+        self._record_trace(state, stage="finalize", message="start finalization")
         state.final_answer = FinalAnswer(
             answer="已生成并完成最小 Agent 主链路的结构化计划。",
             summary="最小 Agent 流程已完成 plan -> act -> reflect -> finalize。",
             completed=True,
             confidence=1.0,
-            next_actions=["进入第 7 步：基础 Trace 与 API Demo"],
+            next_actions=["进入第 8 步：工具层与 mock tool registry"],
         )
         state.status = AgentRunStatus.COMPLETED
+        self._record_trace(state, stage="finalize", message="final answer created")
         return state
+
+    def _record_trace(self, state: AgentState, *, stage: str, message: str) -> None:
+        """Append a minimal trace event to the state."""
+
+        state.trace_events.append(
+            TraceEvent(
+                event_id=str(uuid4()),
+                trace_id=state.trace_id,
+                stage=stage,
+                message=message,
+            )
+        )

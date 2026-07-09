@@ -1,7 +1,8 @@
 """FastAPI application routes.
 
-第 2 步只实现 `GET /health`。这个接口的目标不是检查所有下游依赖，
-而是证明 API 进程可用、配置可读取、版本可观察。
+当前 API 包含两个最小接口：
+1. `GET /health` 用于健康检查。
+2. `POST /tasks/run` 用于演示 Agent 主链路和基础 Trace。
 """
 
 from __future__ import annotations
@@ -11,6 +12,8 @@ from typing import Any
 from fastapi import FastAPI
 
 from app import __version__
+from app.agent import AgentRuntime, AgentState
+from app.schemas import TaskInput
 from app.settings import load_settings
 
 
@@ -44,6 +47,13 @@ def create_app() -> FastAPI:
             "environment": current_settings.app_env,
             "version": __version__,
         }
+
+    @application.post("/tasks/run", response_model=AgentState, tags=["tasks"])
+    async def run_task(task_input: TaskInput) -> AgentState:
+        """Run the minimal Agent flow and return state with trace events."""
+
+        runtime = AgentRuntime()
+        return await runtime.run(task_input)
 
     return application
 
