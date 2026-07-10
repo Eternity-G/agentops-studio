@@ -1,0 +1,41 @@
+[
+  {
+    "case_id": "task-main-flow",
+    "case_type": "task_run",
+    "description": "Agent 主链路应完成一次任务运行",
+    "input": {
+      "task": "生成一个 Agent 项目的执行计划"
+    },
+    "expected_contains": [
+      "completed",
+      "plan -> act -> reflect -> finalize"
+    ]
+  },
+  {
+    "case_id": "document-step13-qa",
+    "case_type": "document_qa",
+    "description": "文档问答链路应能读取第 13 步文档",
+    "input": {
+      "question": "ReadMarkdownTool 是什么？",
+      "path": "docs/第13步-本地Markdown文档读取工具.md"
+    },
+    "expected_contains": [
+      "ReadMarkdownTool",
+      "Markdown"
+    ]
+  },
+  {
+    "case_id": "session-note-memory",
+    "case_type": "session_memory",
+    "description": "会话记忆应能保存人工备注",
+    "input": {
+      "session_id": "eval-session",
+      "content": "评测系统记录一次会话备注"
+    },
+    "expected_contains": [
+      "eval-session",
+      "note",
+      "评测系统记录一次会话备注"
+    ]
+  }
+]
