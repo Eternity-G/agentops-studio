@@ -30,6 +30,10 @@ class ToolResult(StrictSchema):
     tool_name: str = Field(description="Name of the tool that produced this result.")
     status: StepStatus = Field(description="Tool execution status.")
     output: str = Field(description="Human-readable tool output.")
+    error: str | None = Field(
+        default=None,
+        description="Optional machine-readable or human-readable failure reason.",
+    )
 
 
 @runtime_checkable

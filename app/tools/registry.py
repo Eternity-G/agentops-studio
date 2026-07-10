@@ -49,9 +49,19 @@ class ToolRegistry:
                 tool_name=tool_name,
                 status=StepStatus.FAILED,
                 output=str(exc),
+                error=str(exc),
             )
 
-        return tool.run(step)
+        try:
+            return tool.run(step)
+        except Exception as exc:  # pragma: no cover - exercised through tests with custom tools.
+            message = f"tool execution failed: {exc}"
+            return ToolResult(
+                tool_name=tool_name,
+                status=StepStatus.FAILED,
+                output=message,
+                error=message,
+            )
 
 
 class MockToolRegistry(ToolRegistry):

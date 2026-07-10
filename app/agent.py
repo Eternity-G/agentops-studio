@@ -39,6 +39,10 @@ class StepExecutionResult(StrictSchema):
     tool_name: str = Field(description="Tool used to produce this result.")
     status: StepStatus = Field(description="Execution status for this step.")
     output: str = Field(description="Human-readable mock output for this step.")
+    error: str | None = Field(
+        default=None,
+        description="Optional failure reason when the tool call does not complete.",
+    )
 
 
 class TraceEvent(StrictSchema):
@@ -125,16 +129,25 @@ class AgentRuntime:
             raise ValueError("cannot act before planning")
 
         self._record_trace(state, stage="act", message="start tool execution")
-        state.step_results = [
-            StepExecutionResult(
-                step_id=step.step_id,
-                tool_name=tool_result.tool_name,
-                status=tool_result.status,
-                output=tool_result.output,
+        state.step_results = []
+        for step in state.plan.steps:
+            tool_result = self._tool_registry.execute_step(step)
+            state.step_results.append(
+                StepExecutionResult(
+                    step_id=step.step_id,
+                    tool_name=tool_result.tool_name,
+                    status=tool_result.status,
+                    output=tool_result.output,
+                    error=tool_result.error,
+                )
             )
-            for step in state.plan.steps
-            for tool_result in [self._tool_registry.execute_step(step)]
-        ]
+            if tool_result.status == StepStatus.FAILED:
+                self._record_trace(
+                    state,
+                    stage="act",
+                    message=f"tool failed for step {step.step_id}: {tool_result.output}",
+                )
+
         state.status = AgentRunStatus.ACTED
         self._record_trace(
             state,

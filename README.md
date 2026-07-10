@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 8 步：工具层与 Mock Tool Registry**。
+当前已完成 **阶段 1 的第 9 步：工具调用失败处理与回归测试**。
 
 已经具备的能力：
 
@@ -28,10 +28,13 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - 已定义统一工具接口、工具定义和工具结果。
 - `MockToolRegistry` 可以注册并路由 mock 工具。
 - `AgentRuntime` 的 `act` 阶段已经通过工具层生成步骤结果。
+- 工具调用失败会进入结构化 `FAILED` 结果，而不是静默成功。
+- Agent 状态和 Trace 可以暴露未知工具、工具异常等失败边界。
 
 当前还没有实现：
 
 - 真实大模型调用。
+- 真实外部工具调用。
 - RAG 或数据库。
 - 记忆系统。
 - 前端页面。
@@ -68,6 +71,7 @@ tests/
   test_settings.py
   test_task_api.py
   test_tools.py
+  test_tool_failures.py
 docs/
   第1步-项目骨架与环境.md
   第2步-FastAPI健康检查.md
@@ -77,6 +81,7 @@ docs/
   第6步-状态机主链路.md
   第7步-基础Trace与API-Demo.md
   第8步-工具层与Mock-Tool-Registry.md
+  第9步-工具调用失败处理与回归测试.md
 .env.example
 pyproject.toml
 ```
@@ -133,7 +138,7 @@ python -m pytest
 期望结果：
 
 ```text
-40 passed
+43 passed
 ```
 
 Schema 导出：
@@ -210,6 +215,20 @@ python -c "from app.tools import MockToolRegistry; registry = MockToolRegistry()
 ['mock_step', 'planner']
 ```
 
+工具失败回归验证：
+
+```bash
+python -c "import asyncio; from app.agent import AgentRuntime; from app.tools import MockStepTool, ToolRegistry; runtime = AgentRuntime(tool_registry=ToolRegistry(tools=[MockStepTool(name='mock_step')])); state = asyncio.run(runtime.run_from_text('failure demo')); print(state.status); print([(r.step_id, r.tool_name, r.status, r.error) for r in state.step_results]); print(state.errors)"
+```
+
+期望结果包含：
+
+```text
+failed
+unknown tool: planner
+missing completed step results: [2]
+```
+
 健康检查响应：
 
 ```json
@@ -233,17 +252,18 @@ python -c "from app.tools import MockToolRegistry; registry = MockToolRegistry()
 - [第 6 步：状态机主链路](docs/第6步-状态机主链路.md)
 - [第 7 步：基础 Trace 与 API Demo](docs/第7步-基础Trace与API-Demo.md)
 - [第 8 步：工具层与 Mock Tool Registry](docs/第8步-工具层与Mock-Tool-Registry.md)
+- [第 9 步：工具调用失败处理与回归测试](docs/第9步-工具调用失败处理与回归测试.md)
 
 ## 下一步计划
 
-下一步是 **第 9 步：工具调用失败处理与回归测试**。
+下一步是 **第 10 步：只读 Search/Knowledge Mock Tool**。
 
 目标：
 
-- 明确工具调用失败时 AgentState 如何表达失败。
-- 记录失败 trace event 和失败 step result。
-- 增加回归测试，覆盖未知工具、工具执行失败、部分步骤失败。
-- 为后续真实 Search、SQL、Python、MCP 工具接入打基础。
+- 新增一个只读知识检索 mock 工具。
+- 让 Planner 生成的部分步骤可以选择知识检索工具。
+- 在 step result 中返回可追踪的 mock evidence。
+- 为后续真实 RAG 和搜索工具接入准备统一形状。
 
 完成后应能验证：
 
@@ -253,6 +273,6 @@ python -m pytest
 
 并能通过测试证明：
 
-- 失败工具调用不会静默成功。
-- API 响应能暴露失败原因。
-- 回归测试能稳定复现失败边界。
+- AgentRuntime 可以通过 mock knowledge tool 生成证据型输出。
+- FinalAnswer 可以引用工具结果中的 evidence。
+- 测试覆盖知识工具注册、调用和输出结构。
