@@ -4,6 +4,7 @@
 1. `GET /health` 用于健康检查。
 2. `POST /tasks/run` 用于演示 Agent 主链路和基础 Trace。
 3. `POST /documents/ask` 用于演示最小本地文档问答链路。
+4. `GET /sessions/{session_id}` 和 `POST /sessions/{session_id}/notes` 用于演示内存会话状态。
 """
 
 from __future__ import annotations
@@ -15,7 +16,14 @@ from fastapi import FastAPI
 from app import __version__
 from app.agent import AgentRuntime, AgentState
 from app.document_qa import MarkdownQuestionAnswerer
-from app.schemas import DocumentQuestionAnswer, DocumentQuestionInput, TaskInput
+from app.memory import InMemorySessionStore
+from app.schemas import (
+    DocumentQuestionAnswer,
+    DocumentQuestionInput,
+    MemoryNoteInput,
+    SessionState,
+    TaskInput,
+)
 from app.settings import load_settings
 
 
@@ -33,6 +41,7 @@ def create_app() -> FastAPI:
         version=__version__,
         debug=settings.debug,
     )
+    memory_store = InMemorySessionStore()
 
     @application.get("/health", tags=["system"])
     def health_check() -> dict[str, Any]:
@@ -55,14 +64,33 @@ def create_app() -> FastAPI:
         """Run the minimal Agent flow and return state with trace events."""
 
         runtime = AgentRuntime()
-        return await runtime.run(task_input)
+        state = await runtime.run(task_input)
+        session_id = task_input.metadata.get("session_id")
+        if session_id:
+            memory_store.record_task_run(session_id=session_id, state=state)
+        return state
 
     @application.post("/documents/ask", response_model=DocumentQuestionAnswer, tags=["documents"])
     def ask_document(question_input: DocumentQuestionInput) -> DocumentQuestionAnswer:
         """Answer a question from one local Markdown document."""
 
         answerer = MarkdownQuestionAnswerer()
-        return answerer.answer(question_input)
+        answer = answerer.answer(question_input)
+        if question_input.session_id:
+            memory_store.record_document_answer(session_id=question_input.session_id, answer=answer)
+        return answer
+
+    @application.get("/sessions/{session_id}", response_model=SessionState, tags=["sessions"])
+    def get_session(session_id: str) -> SessionState:
+        """Return the in-memory state for one session."""
+
+        return memory_store.get_session(session_id)
+
+    @application.post("/sessions/{session_id}/notes", response_model=SessionState, tags=["sessions"])
+    def append_session_note(session_id: str, note: MemoryNoteInput) -> SessionState:
+        """Append a manual note to one in-memory session."""
+
+        return memory_store.record_note(session_id=session_id, note=note)
 
     return application
 

@@ -8,8 +8,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Annotated
+from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, PositiveInt, StringConstraints, model_validator
 
@@ -42,6 +44,14 @@ class StepStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
     SKIPPED = "skipped"
+
+
+class MemoryEventType(StrEnum):
+    """Kinds of events stored in one in-memory session."""
+
+    TASK_RUN = "task_run"
+    DOCUMENT_QA = "document_qa"
+    NOTE = "note"
 
 
 class TaskInput(StrictSchema):
@@ -135,6 +145,10 @@ class DocumentQuestionInput(StrictSchema):
 
     question: LongText = Field(description="Question to answer from the Markdown document.")
     path: ShortText = Field(description="Markdown file path relative to the workspace root.")
+    session_id: ShortText | None = Field(
+        default=None,
+        description="Optional session id used to store the document answer in memory.",
+    )
 
 
 class DocumentQuestionAnswer(StrictSchema):
@@ -152,6 +166,41 @@ class DocumentQuestionAnswer(StrictSchema):
         default_factory=list,
         description="Evidence snippets used to support the answer.",
         max_length=5,
+    )
+
+
+class MemoryNoteInput(StrictSchema):
+    """Manual note that can be appended to a session."""
+
+    content: LongText = Field(description="Human-readable note content.")
+    metadata: dict[str, ShortText] = Field(
+        default_factory=dict,
+        description="Small structured note metadata.",
+        max_length=20,
+    )
+
+
+class MemoryEvent(StrictSchema):
+    """One event stored in a session memory timeline."""
+
+    event_id: str = Field(default_factory=lambda: str(uuid4()))
+    event_type: MemoryEventType = Field(description="Type of memory event.")
+    summary: ShortText = Field(description="Short event summary for quick inspection.")
+    payload: dict[str, object] = Field(
+        default_factory=dict,
+        description="Small structured event payload for debugging and future retrieval.",
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class SessionState(StrictSchema):
+    """In-memory state for one user or demo session."""
+
+    session_id: ShortText = Field(description="Stable id for one conversation session.")
+    events: list[MemoryEvent] = Field(
+        default_factory=list,
+        description="Ordered memory events in this session.",
+        max_length=100,
     )
 
 
