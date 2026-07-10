@@ -110,6 +110,26 @@ class AgentRuntime:
 
         self._record_trace(state, stage="plan", message="start planning")
         state.plan = await self._planner.create_plan(state.task_input)
+        for attempt in self._planner.last_attempts:
+            if attempt.success:
+                fallback = " with fallback" if attempt.used_fallback else ""
+                self._record_trace(
+                    state,
+                    stage="plan",
+                    message=(
+                        f"provider {attempt.provider_name}/{attempt.model} "
+                        f"attempt {attempt.attempt} succeeded{fallback}"
+                    ),
+                )
+            else:
+                self._record_trace(
+                    state,
+                    stage="plan",
+                    message=(
+                        f"provider {attempt.provider_name}/{attempt.model} "
+                        f"attempt {attempt.attempt} failed: {attempt.error}"
+                    ),
+                )
         state.status = AgentRunStatus.PLANNED
         self._record_trace(
             state,
@@ -189,7 +209,7 @@ class AgentRuntime:
             summary="最小 Agent 流程已完成 plan -> act -> reflect -> finalize。",
             completed=True,
             confidence=1.0,
-            next_actions=["进入第 9 步：工具调用失败处理与回归测试"],
+            next_actions=["进入第 13 步：本地 Markdown 文档读取工具"],
         )
         state.status = AgentRunStatus.COMPLETED
         self._record_trace(state, stage="finalize", message="final answer created")
