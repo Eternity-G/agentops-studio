@@ -3,6 +3,7 @@
 当前 API 包含两个最小接口：
 1. `GET /health` 用于健康检查。
 2. `POST /tasks/run` 用于演示 Agent 主链路和基础 Trace。
+3. `POST /documents/ask` 用于演示最小本地文档问答链路。
 """
 
 from __future__ import annotations
@@ -13,7 +14,8 @@ from fastapi import FastAPI
 
 from app import __version__
 from app.agent import AgentRuntime, AgentState
-from app.schemas import TaskInput
+from app.document_qa import MarkdownQuestionAnswerer
+from app.schemas import DocumentQuestionAnswer, DocumentQuestionInput, TaskInput
 from app.settings import load_settings
 
 
@@ -54,6 +56,13 @@ def create_app() -> FastAPI:
 
         runtime = AgentRuntime()
         return await runtime.run(task_input)
+
+    @application.post("/documents/ask", response_model=DocumentQuestionAnswer, tags=["documents"])
+    def ask_document(question_input: DocumentQuestionInput) -> DocumentQuestionAnswer:
+        """Answer a question from one local Markdown document."""
+
+        answerer = MarkdownQuestionAnswerer()
+        return answerer.answer(question_input)
 
     return application
 

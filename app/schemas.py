@@ -130,6 +130,31 @@ class Evidence(StrictSchema):
     )
 
 
+class DocumentQuestionInput(StrictSchema):
+    """Input for asking a question about one local Markdown document."""
+
+    question: LongText = Field(description="Question to answer from the Markdown document.")
+    path: ShortText = Field(description="Markdown file path relative to the workspace root.")
+
+
+class DocumentQuestionAnswer(StrictSchema):
+    """Structured answer produced from one local Markdown document."""
+
+    question: LongText = Field(description="Original user question.")
+    answer: LongText = Field(description="Answer grounded in the provided Markdown document.")
+    source_path: ShortText = Field(description="Markdown file path used as the source.")
+    excerpt: LongText | None = Field(
+        default=None,
+        description="Most relevant document excerpt found by the minimal retriever.",
+    )
+    completed: bool = Field(description="Whether the document question-answer flow completed.")
+    evidence: list[Evidence] = Field(
+        default_factory=list,
+        description="Evidence snippets used to support the answer.",
+        max_length=5,
+    )
+
+
 class FinalAnswer(StrictSchema):
     """Structured final answer returned by the future Agent runtime."""
 

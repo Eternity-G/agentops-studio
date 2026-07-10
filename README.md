@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前固定路线共 **18 步**，已完成到 **第 13 步：本地 Markdown 文档读取工具**。
+当前固定路线共 **18 步**，已完成到 **第 14 步：文档问答最小 RAG 链路**。
 
 已经具备的核心能力：
 
@@ -19,10 +19,12 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - Agent trace 会记录 provider 尝试、失败、重试和 fallback 事件，方便排查真实模型不稳定问题。
 - `ReadMarkdownTool` 可以安全读取工作区内的 `.md` 文件，并限制输出长度。
 - 默认工具注册表已经暴露 `read_markdown`，为后续文档问答和 RAG 做准备。
+- `MarkdownQuestionAnswerer` 可以读取指定 Markdown 文档，抽取相关片段，并返回带证据的结构化答案。
+- `POST /documents/ask` 可以通过 HTTP 调用最小本地文档问答链路。
 
 当前还没有实现：
 
-- RAG 或向量数据库。
+- 向量数据库和 embedding 检索。
 - 长期记忆系统。
 - 自动评测集和评测报告。
 - 前端页面。
@@ -45,8 +47,8 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 | 11 | 用真实 DeepSeek Planner 跑通 API Demo | 已完成 |
 | 12 | 模型输出修复、重试与 fallback | 已完成 |
 | 13 | 本地 Markdown 文档读取工具 | 已完成 |
-| 14 | 文档问答最小 RAG 链路 | 下一步 |
-| 15 | 记忆与会话状态 | 未开始 |
+| 14 | 文档问答最小 RAG 链路 | 已完成 |
+| 15 | 记忆与会话状态 | 下一步 |
 | 16 | 评测集与自动评测报告 | 未开始 |
 | 17 | 前端 Demo 页面 | 未开始 |
 | 18 | 部署、简历材料与项目复盘 | 未开始 |
@@ -86,6 +88,14 @@ curl -X POST http://localhost:8000/tasks/run ^
   -d "{\"task\":\"分析一个 Agent 项目的下一步计划\"}"
 ```
 
+运行文档问答 API Demo：
+
+```bash
+curl -X POST http://localhost:8000/documents/ask ^
+  -H "Content-Type: application/json" ^
+  -d "{\"question\":\"第 13 步实现了什么？\",\"path\":\"docs/第13步-本地Markdown文档读取工具.md\"}"
+```
+
 ## 当前验证结果
 
 测试命令：
@@ -97,7 +107,7 @@ python -m pytest
 当前期望结果：
 
 ```text
-59 passed
+65 passed
 ```
 
 Planner fallback 验证：
@@ -122,6 +132,18 @@ python -m pytest tests/test_markdown_tool.py
 
 ```text
 7 passed
+```
+
+文档问答 API 验证：
+
+```bash
+python -m pytest tests/test_document_qa.py
+```
+
+期望结果：
+
+```text
+6 passed
 ```
 
 ## DeepSeek 本地配置
@@ -149,6 +171,6 @@ python scripts/verify_deepseek_planner.py
 
 ## 下一步
 
-第 14 步：文档问答最小 RAG 链路。
+第 15 步：记忆与会话状态。
 
-目标是在不引入向量数据库的前提下，让 Agent 可以围绕本地 Markdown 文档完成一次最小问答链路。
+目标是让系统能够保存一次会话中的任务、文档问答结果和关键上下文，为多轮交互与简历展示做准备。
