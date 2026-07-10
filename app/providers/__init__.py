@@ -7,10 +7,12 @@
 from __future__ import annotations
 
 from app.providers.base import ModelProvider, ProviderInfo
+from app.providers.deepseek import DeepSeekProvider
 from app.providers.factory import create_provider
 from app.providers.mock import MockProvider
 
 __all__ = [
+    "DeepSeekProvider",
     "MockProvider",
     "ModelProvider",
     "ProviderInfo",

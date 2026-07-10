@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 9 步：工具调用失败处理与回归测试**。
+当前已完成 **阶段 1 的第 11 步：用真实 DeepSeek Planner 跑通 API Demo**。
 
 已经具备的能力：
 
@@ -30,10 +30,15 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `AgentRuntime` 的 `act` 阶段已经通过工具层生成步骤结果。
 - 工具调用失败会进入结构化 `FAILED` 结果，而不是静默成功。
 - Agent 状态和 Trace 可以暴露未知工具、工具异常等失败边界。
+- 已接入 DeepSeek OpenAI-compatible Provider。
+- DeepSeekProvider 可以把模型 JSON 输出校验为 `ExecutionPlan`。
+- Provider 工厂可以通过 `MODEL_PROVIDER=deepseek` 创建真实模型 provider。
+- 本地 `.env` 可以启用真实 DeepSeek provider。
+- `scripts/verify_deepseek_planner.py` 可以调用真实 DeepSeek 生成计划。
+- `POST /tasks/run` 可以通过真实 DeepSeek Planner 跑通 Agent API Demo。
 
 当前还没有实现：
 
-- 真实大模型调用。
 - 真实外部工具调用。
 - RAG 或数据库。
 - 记忆系统。
@@ -54,6 +59,7 @@ app/
   providers/
     __init__.py
     base.py
+    deepseek.py
     factory.py
     mock.py
   tools/
@@ -61,8 +67,11 @@ app/
     base.py
     mock.py
     registry.py
+scripts/
+  verify_deepseek_planner.py
 tests/
   test_agent.py
+  test_deepseek_provider.py
   test_health.py
   test_planner.py
   test_providers.py
@@ -82,6 +91,8 @@ docs/
   第7步-基础Trace与API-Demo.md
   第8步-工具层与Mock-Tool-Registry.md
   第9步-工具调用失败处理与回归测试.md
+  第10步-接入DeepSeek大模型Provider.md
+  第11步-用真实DeepSeek-Planner跑通API-Demo.md
 .env.example
 pyproject.toml
 ```
@@ -138,7 +149,7 @@ python -m pytest
 期望结果：
 
 ```text
-43 passed
+48 passed
 ```
 
 Schema 导出：
@@ -229,6 +240,30 @@ unknown tool: planner
 missing completed step results: [2]
 ```
 
+DeepSeek Provider 本地配置：
+
+```bash
+MODEL_PROVIDER=deepseek
+DEFAULT_MODEL=deepseek-v4-flash
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_API_KEY=你的本地 API key
+```
+
+注意：不要把真实 API key 写进代码、README 或 Git 提交。
+
+真实 DeepSeek Planner 验证：
+
+```bash
+python scripts/verify_deepseek_planner.py
+```
+
+本地已验证结果：
+
+```text
+provider=deepseek
+model=deepseek-v4-flash
+```
+
 健康检查响应：
 
 ```json
@@ -253,17 +288,19 @@ missing completed step results: [2]
 - [第 7 步：基础 Trace 与 API Demo](docs/第7步-基础Trace与API-Demo.md)
 - [第 8 步：工具层与 Mock Tool Registry](docs/第8步-工具层与Mock-Tool-Registry.md)
 - [第 9 步：工具调用失败处理与回归测试](docs/第9步-工具调用失败处理与回归测试.md)
+- [第 10 步：接入 DeepSeek 大模型 Provider](docs/第10步-接入DeepSeek大模型Provider.md)
+- [第 11 步：用真实 DeepSeek Planner 跑通 API Demo](docs/第11步-用真实DeepSeek-Planner跑通API-Demo.md)
 
 ## 下一步计划
 
-下一步是 **第 10 步：只读 Search/Knowledge Mock Tool**。
+下一步是 **第 12 步：真实模型输出修复、重试与 fallback**。
 
 目标：
 
-- 新增一个只读知识检索 mock 工具。
-- 让 Planner 生成的部分步骤可以选择知识检索工具。
-- 在 step result 中返回可追踪的 mock evidence。
-- 为后续真实 RAG 和搜索工具接入准备统一形状。
+- 当真实模型输出非法 JSON 时，提供一次修复或重试机会。
+- DeepSeek 调用失败时可 fallback 到 MockProvider，保证 demo 不直接崩溃。
+- Trace 中记录 provider 名称、模型名和失败原因。
+- 增加不访问真实网络的回归测试。
 
 完成后应能验证：
 
@@ -273,6 +310,6 @@ python -m pytest
 
 并能通过测试证明：
 
-- AgentRuntime 可以通过 mock knowledge tool 生成证据型输出。
-- FinalAnswer 可以引用工具结果中的 evidence。
-- 测试覆盖知识工具注册、调用和输出结构。
+- 非法 JSON 可以被检测并解释。
+- provider 失败可以进入 fallback 或结构化错误。
+- API Demo 在真实模型不稳定时仍可调试。

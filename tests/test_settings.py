@@ -16,7 +16,7 @@ class SettingsTests(unittest.TestCase):
         """Defaults should not require external services or API keys."""
 
         with patch.dict(os.environ, {}, clear=True):
-            settings = load_settings()
+            settings = load_settings(load_dotenv=False)
 
         self.assertEqual(settings, AppSettings())
         self.assertEqual(settings.model_provider, "mock")
