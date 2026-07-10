@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前固定路线共 **18 步**，已完成到 **第 17 步：前端 Demo 页面**。
+当前固定路线共 **18 步**，已全部完成。
 
 已经具备的核心能力：
 
@@ -27,12 +27,14 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `scripts/run_evals.py` 可以读取 `evals/cases.json` 并生成 `evals/latest-report.md`。
 - FastAPI 可以托管浏览器 Demo 页面、静态资源和最新评测报告。
 - 前端页面可以调用任务运行、文档问答、会话记忆和评测报告接口。
+- 项目已经补齐 Dockerfile、部署说明、简历项目描述和最终复盘文档。
 
-当前还没有实现：
+当前生产化边界：
 
 - 向量数据库和 embedding 检索。
 - 持久化长期记忆系统。
-- 生产部署配置。
+- 用户认证、权限和多租户隔离。
+- 云端 CI/CD。
 
 ## 固定 18 步路线
 
@@ -55,7 +57,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 | 15 | 记忆与会话状态 | 已完成 |
 | 16 | 评测集与自动评测报告 | 已完成 |
 | 17 | 前端 Demo 页面 | 已完成 |
-| 18 | 部署、简历材料与项目复盘 | 下一步 |
+| 18 | 部署、简历材料与项目复盘 | 已完成 |
 
 ## 快速开始
 
@@ -120,6 +122,13 @@ curl -X POST http://localhost:8000/sessions/demo-session/notes ^
 python scripts/run_evals.py
 ```
 
+Docker 本地运行：
+
+```bash
+docker build -t agentops-studio .
+docker run --rm -p 8000:8000 agentops-studio
+```
+
 ## 当前验证结果
 
 测试命令：
@@ -131,7 +140,7 @@ python -m pytest
 当前期望结果：
 
 ```text
-79 passed
+84 passed
 ```
 
 Planner fallback 验证：
@@ -208,6 +217,18 @@ python -m pytest tests/test_web.py
 4 passed
 ```
 
+最终交付物验证：
+
+```bash
+python -m pytest tests/test_project_artifacts.py
+```
+
+期望结果：
+
+```text
+5 passed
+```
+
 ## DeepSeek 本地配置
 
 `.env` 只用于本地运行，已经被 `.gitignore` 忽略。不要把真实 API key 写入代码、README、测试或 Git 提交。
@@ -231,8 +252,12 @@ python scripts/verify_deepseek_planner.py
 
 详细学习记录放在 `docs/` 目录中，每一步一个 Markdown 文件。README 只保留当前状态、路线和验证方式。
 
-## 下一步
+重要交付文档：
 
-第 18 步：部署、简历材料与项目复盘。
+- [部署说明](docs/部署说明.md)
+- [简历项目描述](docs/简历项目描述.md)
+- [项目复盘](docs/项目复盘.md)
 
-目标是补齐本地部署说明、项目亮点、简历表述和最终验收清单。
+## 后续增强
+
+18 步学习路线已经完成。后续可以继续增强数据库持久化、向量数据库 RAG、用户认证、CI/CD、云部署和更完整的前端工程。
