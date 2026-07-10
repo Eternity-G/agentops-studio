@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前已完成 **阶段 1 的第 7 步：基础 Trace 与 API Demo**。
+当前已完成 **阶段 1 的第 8 步：工具层与 Mock Tool Registry**。
 
 已经具备的能力：
 
@@ -25,11 +25,13 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `AgentState` 可以保存任务输入、计划、步骤结果、最终答案和错误信息。
 - `AgentState` 已包含 `task_id`、`trace_id` 和基础 `trace_events`。
 - `POST /tasks/run` 可以通过 HTTP 跑通最小 Agent 主链路。
+- 已定义统一工具接口、工具定义和工具结果。
+- `MockToolRegistry` 可以注册并路由 mock 工具。
+- `AgentRuntime` 的 `act` 阶段已经通过工具层生成步骤结果。
 
 当前还没有实现：
 
 - 真实大模型调用。
-- 工具调用。
 - RAG 或数据库。
 - 记忆系统。
 - 前端页面。
@@ -51,6 +53,11 @@ app/
     base.py
     factory.py
     mock.py
+  tools/
+    __init__.py
+    base.py
+    mock.py
+    registry.py
 tests/
   test_agent.py
   test_health.py
@@ -60,6 +67,7 @@ tests/
   test_schemas.py
   test_settings.py
   test_task_api.py
+  test_tools.py
 docs/
   第1步-项目骨架与环境.md
   第2步-FastAPI健康检查.md
@@ -68,6 +76,7 @@ docs/
   第5步-Planner最小实现.md
   第6步-状态机主链路.md
   第7步-基础Trace与API-Demo.md
+  第8步-工具层与Mock-Tool-Registry.md
 .env.example
 pyproject.toml
 ```
@@ -124,7 +133,7 @@ python -m pytest
 期望结果：
 
 ```text
-34 passed
+40 passed
 ```
 
 Schema 导出：
@@ -189,6 +198,18 @@ python -c "from fastapi.testclient import TestClient; from app.api.routes import
 completed True True 8
 ```
 
+Mock Tool Registry 验证：
+
+```bash
+python -c "from app.tools import MockToolRegistry; registry = MockToolRegistry(); print([tool.name for tool in registry.list_definitions()])"
+```
+
+期望结果包含：
+
+```text
+['mock_step', 'planner']
+```
+
 健康检查响应：
 
 ```json
@@ -211,17 +232,18 @@ completed True True 8
 - [第 5 步：Planner 最小实现](docs/第5步-Planner最小实现.md)
 - [第 6 步：状态机主链路](docs/第6步-状态机主链路.md)
 - [第 7 步：基础 Trace 与 API Demo](docs/第7步-基础Trace与API-Demo.md)
+- [第 8 步：工具层与 Mock Tool Registry](docs/第8步-工具层与Mock-Tool-Registry.md)
 
 ## 下一步计划
 
-下一步是 **第 8 步：工具层与 Mock Tool Registry**。
+下一步是 **第 9 步：工具调用失败处理与回归测试**。
 
 目标：
 
-- 定义统一工具接口。
-- 实现 mock 工具注册表。
-- 让 `act` 阶段不再直接生成字符串，而是通过 mock tool 执行步骤。
-- 编写测试验证工具注册、工具调用和失败边界。
+- 明确工具调用失败时 AgentState 如何表达失败。
+- 记录失败 trace event 和失败 step result。
+- 增加回归测试，覆盖未知工具、工具执行失败、部分步骤失败。
+- 为后续真实 Search、SQL、Python、MCP 工具接入打基础。
 
 完成后应能验证：
 
@@ -231,6 +253,6 @@ python -m pytest
 
 并能通过测试证明：
 
-- 每个工具都有名称、描述、输入 schema 和执行结果。
-- AgentRuntime 可以通过工具层生成 step result。
-- 工具调用失败时能返回可解释错误。
+- 失败工具调用不会静默成功。
+- API 响应能暴露失败原因。
+- 回归测试能稳定复现失败边界。

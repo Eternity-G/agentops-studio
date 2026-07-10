@@ -18,6 +18,7 @@ from pydantic import Field
 
 from app.planner import Planner
 from app.schemas import ExecutionPlan, FinalAnswer, StepStatus, StrictSchema, TaskInput
+from app.tools import MockToolRegistry, ToolRegistry
 
 
 class AgentRunStatus(StrEnum):
@@ -35,6 +36,7 @@ class StepExecutionResult(StrictSchema):
     """Observable result produced by executing one plan step."""
 
     step_id: int = Field(description="The plan step id that produced this result.")
+    tool_name: str = Field(description="Tool used to produce this result.")
     status: StepStatus = Field(description="Execution status for this step.")
     output: str = Field(description="Human-readable mock output for this step.")
 
@@ -69,8 +71,13 @@ class AgentRuntime:
     方法把状态流跑通，让每个阶段都有清晰边界和测试。
     """
 
-    def __init__(self, planner: Planner | None = None) -> None:
+    def __init__(
+        self,
+        planner: Planner | None = None,
+        tool_registry: ToolRegistry | None = None,
+    ) -> None:
         self._planner = planner or Planner()
+        self._tool_registry = tool_registry or MockToolRegistry()
 
     async def run(self, task_input: TaskInput) -> AgentState:
         """Run the full minimal flow and return the final state."""
@@ -117,20 +124,22 @@ class AgentRuntime:
         if state.plan is None:
             raise ValueError("cannot act before planning")
 
-        self._record_trace(state, stage="act", message="start mock execution")
+        self._record_trace(state, stage="act", message="start tool execution")
         state.step_results = [
             StepExecutionResult(
                 step_id=step.step_id,
-                status=StepStatus.COMPLETED,
-                output=f"mock completed: {step.goal}",
+                tool_name=tool_result.tool_name,
+                status=tool_result.status,
+                output=tool_result.output,
             )
             for step in state.plan.steps
+            for tool_result in [self._tool_registry.execute_step(step)]
         ]
         state.status = AgentRunStatus.ACTED
         self._record_trace(
             state,
             stage="act",
-            message=f"created {len(state.step_results)} mock step results",
+            message=f"created {len(state.step_results)} tool step results",
         )
         return state
 
@@ -167,7 +176,7 @@ class AgentRuntime:
             summary="最小 Agent 流程已完成 plan -> act -> reflect -> finalize。",
             completed=True,
             confidence=1.0,
-            next_actions=["进入第 8 步：工具层与 mock tool registry"],
+            next_actions=["进入第 9 步：工具调用失败处理与回归测试"],
         )
         state.status = AgentRunStatus.COMPLETED
         self._record_trace(state, stage="finalize", message="final answer created")
