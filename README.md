@@ -4,7 +4,7 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 
 ## 当前状态
 
-当前固定路线共 **18 步**，已完成到 **第 16 步：评测集与自动评测报告**。
+当前固定路线共 **18 步**，已完成到 **第 17 步：前端 Demo 页面**。
 
 已经具备的核心能力：
 
@@ -25,12 +25,13 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `GET /sessions/{session_id}` 和 `POST /sessions/{session_id}/notes` 可以观察和追加会话记忆。
 - `EvaluationRunner` 可以离线评测任务主链路、文档问答链路和会话记忆链路。
 - `scripts/run_evals.py` 可以读取 `evals/cases.json` 并生成 `evals/latest-report.md`。
+- FastAPI 可以托管浏览器 Demo 页面、静态资源和最新评测报告。
+- 前端页面可以调用任务运行、文档问答、会话记忆和评测报告接口。
 
 当前还没有实现：
 
 - 向量数据库和 embedding 检索。
 - 持久化长期记忆系统。
-- 前端页面。
 - 生产部署配置。
 
 ## 固定 18 步路线
@@ -53,8 +54,8 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 | 14 | 文档问答最小 RAG 链路 | 已完成 |
 | 15 | 记忆与会话状态 | 已完成 |
 | 16 | 评测集与自动评测报告 | 已完成 |
-| 17 | 前端 Demo 页面 | 下一步 |
-| 18 | 部署、简历材料与项目复盘 | 未开始 |
+| 17 | 前端 Demo 页面 | 已完成 |
+| 18 | 部署、简历材料与项目复盘 | 下一步 |
 
 ## 快速开始
 
@@ -81,6 +82,12 @@ python -m uvicorn app.api.routes:app --reload
 ```text
 http://localhost:8000/docs
 http://localhost:8000/openapi.json
+```
+
+打开前端 Demo：
+
+```text
+http://localhost:8000/
 ```
 
 运行 Agent API Demo：
@@ -124,7 +131,7 @@ python -m pytest
 当前期望结果：
 
 ```text
-75 passed
+79 passed
 ```
 
 Planner fallback 验证：
@@ -189,6 +196,18 @@ python scripts/run_evals.py
 通过率：100%
 ```
 
+前端页面验证：
+
+```bash
+python -m pytest tests/test_web.py
+```
+
+期望结果：
+
+```text
+4 passed
+```
+
 ## DeepSeek 本地配置
 
 `.env` 只用于本地运行，已经被 `.gitignore` 忽略。不要把真实 API key 写入代码、README、测试或 Git 提交。
@@ -214,6 +233,6 @@ python scripts/verify_deepseek_planner.py
 
 ## 下一步
 
-第 17 步：前端 Demo 页面。
+第 18 步：部署、简历材料与项目复盘。
 
-目标是提供一个可视化页面，让用户可以通过浏览器体验任务运行、文档问答、会话记忆和评测结果。
+目标是补齐本地部署说明、项目亮点、简历表述和最终验收清单。

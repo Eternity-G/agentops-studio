@@ -9,9 +9,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.agent import AgentRuntime, AgentState
@@ -36,12 +39,23 @@ def create_app() -> FastAPI:
     """
 
     settings = load_settings()
+    app_dir = Path(__file__).resolve().parents[1]
+    project_root = app_dir.parent
+    web_dir = app_dir / "web"
+    eval_report_path = project_root / "evals" / "latest-report.md"
     application = FastAPI(
         title=settings.app_name,
         version=__version__,
         debug=settings.debug,
     )
     memory_store = InMemorySessionStore()
+    application.mount("/static", StaticFiles(directory=web_dir), name="static")
+
+    @application.get("/", tags=["web"])
+    def web_index() -> FileResponse:
+        """Return the browser demo page."""
+
+        return FileResponse(web_dir / "index.html")
 
     @application.get("/health", tags=["system"])
     def health_check() -> dict[str, Any]:
@@ -91,6 +105,14 @@ def create_app() -> FastAPI:
         """Append a manual note to one in-memory session."""
 
         return memory_store.record_note(session_id=session_id, note=note)
+
+    @application.get("/evals/latest-report", tags=["evals"])
+    def latest_eval_report() -> PlainTextResponse:
+        """Return the latest offline evaluation report."""
+
+        if not eval_report_path.exists():
+            return PlainTextResponse("评测报告不存在，请先运行 python scripts/run_evals.py。", status_code=404)
+        return PlainTextResponse(eval_report_path.read_text(encoding="utf-8"))
 
     return application
 

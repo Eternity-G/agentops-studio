@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgentOps Studio</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">AgentOps Studio</p>
+          <h1>Agent 工程控制台</h1>
+        </div>
+        <img class="flow-map" src="/static/assets/flow.svg" alt="Agent workflow map" />
+        <nav class="nav-list" aria-label="页面导航">
+          <a href="#task-panel">任务</a>
+          <a href="#document-panel">文档</a>
+          <a href="#session-panel">会话</a>
+          <a href="#eval-panel">评测</a>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <section class="toolbar" aria-label="状态栏">
+          <div>
+            <span class="status-dot"></span>
+            <span id="healthStatus">检查中</span>
+          </div>
+          <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+        </section>
+
+        <section class="panel-grid">
+          <article id="task-panel" class="panel">
+            <header>
+              <h2>任务运行</h2>
+              <span class="tag">/tasks/run</span>
+            </header>
+            <label>
+              <span>任务</span>
+              <textarea id="taskInput">分析 AgentOps Studio 当前能力</textarea>
+            </label>
+            <label>
+              <span>会话 ID</span>
+              <input id="taskSession" value="demo-session" />
+            </label>
+            <button id="runTaskButton" type="button">运行任务</button>
+            <pre id="taskOutput" class="output"></pre>
+          </article>
+
+          <article id="document-panel" class="panel">
+            <header>
+              <h2>文档问答</h2>
+              <span class="tag">/documents/ask</span>
+            </header>
+            <label>
+              <span>问题</span>
+              <textarea id="questionInput">第 13 步实现了什么？</textarea>
+            </label>
+            <label>
+              <span>Markdown 路径</span>
+              <input id="documentPath" value="docs/第13步-本地Markdown文档读取工具.md" />
+            </label>
+            <label>
+              <span>会话 ID</span>
+              <input id="documentSession" value="demo-session" />
+            </label>
+            <button id="askDocumentButton" type="button">提交问题</button>
+            <pre id="documentOutput" class="output"></pre>
+          </article>
+
+          <article id="session-panel" class="panel">
+            <header>
+              <h2>会话记忆</h2>
+              <span class="tag">/sessions</span>
+            </header>
+            <label>
+              <span>会话 ID</span>
+              <input id="sessionId" value="demo-session" />
+            </label>
+            <label>
+              <span>备注</span>
+              <textarea id="noteInput">记录一次前端 Demo 操作</textarea>
+            </label>
+            <div class="button-row">
+              <button id="loadSessionButton" type="button">查看会话</button>
+              <button id="appendNoteButton" type="button">追加备注</button>
+            </div>
+            <pre id="sessionOutput" class="output"></pre>
+          </article>
+
+          <article id="eval-panel" class="panel">
+            <header>
+              <h2>评测报告</h2>
+              <span class="tag">latest-report.md</span>
+            </header>
+            <button id="loadEvalButton" type="button">加载报告</button>
+            <pre id="evalOutput" class="output"></pre>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
