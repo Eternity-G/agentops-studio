@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from app.schemas import PlanStep, StepStatus
 from app.tools.base import Tool, ToolDefinition, ToolResult
+from app.tools.markdown import ReadMarkdownTool
 from app.tools.mock import MockStepTool
 
 
@@ -72,6 +73,7 @@ class MockToolRegistry(ToolRegistry):
             tools=[
                 MockStepTool(name="mock_step", description="Default mock executor for simple steps."),
                 MockStepTool(name="planner", description="Mock planner tool used by generated plans."),
+                ReadMarkdownTool(),
             ],
             default_tool_name="mock_step",
         )
