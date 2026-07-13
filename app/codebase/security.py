@@ -52,6 +52,7 @@ DEFAULT_IGNORED_DIRS = {
     "dist",
     "build",
     "coverage",
+    "external-repos",
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
