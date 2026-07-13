@@ -51,6 +51,7 @@ class MemoryEventType(StrEnum):
 
     TASK_RUN = "task_run"
     DOCUMENT_QA = "document_qa"
+    CODEBASE_QA = "codebase_qa"
     NOTE = "note"
 
 
@@ -138,6 +139,110 @@ class Evidence(StrictSchema):
         default=None,
         description="Optional short evidence excerpt. Keep it small and traceable.",
     )
+
+
+class CodeEvidence(StrictSchema):
+    """Source-grounded evidence from a code repository."""
+
+    file_path: ShortText = Field(description="Repository-relative file path.")
+    line_start: PositiveInt = Field(description="First evidence line number.")
+    line_end: PositiveInt = Field(description="Last evidence line number.")
+    quote: LongText = Field(description="Short code or documentation excerpt.")
+
+
+class CodebaseInput(StrictSchema):
+    """Input that identifies a local code repository."""
+
+    repository_path: ShortText = Field(
+        default=".",
+        description="Local repository path. It must stay inside the configured workspace.",
+    )
+
+
+class CodebaseQuestionInput(CodebaseInput):
+    """Question asked against a local code repository."""
+
+    question: LongText = Field(description="Developer question about the codebase.")
+    session_id: ShortText | None = Field(
+        default=None,
+        description="Optional session id used to store the codebase answer in memory.",
+    )
+
+
+class CodeSearchInput(CodebaseInput):
+    """Keyword search request for a local code repository."""
+
+    query: ShortText = Field(description="Keyword or symbol to search in the repository.")
+    limit: PositiveInt = Field(default=20, le=50, description="Maximum number of matches.")
+
+
+class CodeImpactInput(CodebaseInput):
+    """Request for file-level impact analysis."""
+
+    target_path: ShortText = Field(description="Repository-relative file path to analyze.")
+
+
+class CodebaseSummary(StrictSchema):
+    """High-level summary of a local code repository."""
+
+    repository_path: ShortText
+    total_files: int = Field(ge=0)
+    analyzed_files: int = Field(ge=0)
+    total_lines: int = Field(ge=0)
+    top_level_directories: list[ShortText] = Field(default_factory=list, max_length=50)
+    key_files: list[ShortText] = Field(default_factory=list, max_length=50)
+    languages: dict[ShortText, int] = Field(default_factory=dict)
+    frontend_signals: list[ShortText] = Field(default_factory=list, max_length=20)
+    backend_signals: list[ShortText] = Field(default_factory=list, max_length=20)
+
+
+class CodeSearchMatch(StrictSchema):
+    """One keyword match in a code repository."""
+
+    file_path: ShortText
+    line_number: PositiveInt
+    line: ShortText
+
+
+class PythonSymbol(StrictSchema):
+    """Python class/function/import symbol extracted with ast."""
+
+    name: ShortText
+    symbol_type: ShortText
+    file_path: ShortText
+    line_number: PositiveInt
+    parent: ShortText | None = None
+
+
+class CodebaseAnswer(StrictSchema):
+    """Answer grounded in local repository evidence."""
+
+    question: LongText
+    answer: LongText
+    completed: bool
+    repository_path: ShortText
+    evidence: list[CodeEvidence] = Field(default_factory=list, max_length=10)
+    searched_terms: list[ShortText] = Field(default_factory=list, max_length=10)
+    risk_notes: list[ShortText] = Field(default_factory=list, max_length=10)
+
+
+class CodeImpactReport(StrictSchema):
+    """File-level impact analysis report."""
+
+    target_path: ShortText
+    referenced_by: list[CodeEvidence] = Field(default_factory=list, max_length=20)
+    likely_impacted_areas: list[ShortText] = Field(default_factory=list, max_length=20)
+    test_suggestions: list[ShortText] = Field(default_factory=list, max_length=10)
+
+
+class DiffReviewReport(StrictSchema):
+    """Review report for current git diff."""
+
+    changed_files: list[ShortText] = Field(default_factory=list, max_length=100)
+    summary: LongText
+    risk_notes: list[ShortText] = Field(default_factory=list, max_length=20)
+    test_suggestions: list[ShortText] = Field(default_factory=list, max_length=20)
+    evidence: list[CodeEvidence] = Field(default_factory=list, max_length=20)
 
 
 class DocumentQuestionInput(StrictSchema):

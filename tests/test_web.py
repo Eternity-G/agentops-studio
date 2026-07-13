@@ -15,7 +15,7 @@ def test_web_index_returns_demo_page() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Agent 工程控制台" in response.text
+    assert "代码仓库理解 Agent" in response.text
     assert "/static/app.js" in response.text
 
 
@@ -31,7 +31,7 @@ def test_static_assets_are_served() -> None:
     assert css_response.status_code == 200
     assert "panel-grid" in css_response.text
     assert js_response.status_code == 200
-    assert "requestJson" in js_response.text
+    assert "/codebase/ask" in js_response.text
     assert svg_response.status_code == 200
     assert "<svg" in svg_response.text
 

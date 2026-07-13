@@ -12,6 +12,7 @@ from enum import StrEnum
 from pydantic import Field
 
 from app.agent import AgentRuntime
+from app.codebase.qa import CodebaseQuestionAnswerer
 from app.document_qa import MarkdownQuestionAnswerer
 from app.memory import InMemorySessionStore
 from app.planner import Planner
@@ -25,6 +26,7 @@ class EvalCaseType(StrEnum):
     TASK_RUN = "task_run"
     DOCUMENT_QA = "document_qa"
     SESSION_MEMORY = "session_memory"
+    CODEBASE_QA = "codebase_qa"
 
 
 class EvalCase(StrictSchema):
@@ -97,6 +99,7 @@ class EvaluationRunner:
         *,
         agent_runtime: AgentRuntime | None = None,
         document_answerer: MarkdownQuestionAnswerer | None = None,
+        codebase_answerer: CodebaseQuestionAnswerer | None = None,
         memory_store: InMemorySessionStore | None = None,
     ) -> None:
         self._agent_runtime = agent_runtime or AgentRuntime(
@@ -106,6 +109,7 @@ class EvaluationRunner:
             )
         )
         self._document_answerer = document_answerer or MarkdownQuestionAnswerer()
+        self._codebase_answerer = codebase_answerer or CodebaseQuestionAnswerer()
         self._memory_store = memory_store or InMemorySessionStore()
 
     async def run(self, cases: list[EvalCase]) -> EvalReport:
@@ -136,6 +140,8 @@ class EvaluationRunner:
                 output = self._run_document_case(case)
             elif case.case_type == EvalCaseType.SESSION_MEMORY:
                 output = self._run_memory_case(case)
+            elif case.case_type == EvalCaseType.CODEBASE_QA:
+                output = self._run_codebase_case(case)
             else:  # pragma: no cover - StrEnum validation prevents this branch.
                 output = f"unsupported case type: {case.case_type}"
         except Exception as exc:
@@ -198,6 +204,25 @@ class EvaluationRunner:
                 str(len(session.events)),
                 "\n".join(event.event_type.value for event in session.events),
                 "\n".join(event.summary for event in session.events),
+            ]
+        )
+
+    def _run_codebase_case(self, case: EvalCase) -> str:
+        """Run a codebase question-answer case and return observable text."""
+
+        question = self._require_text(case, "question")
+        repository_path = self._require_text(case, "repository_path")
+        answer = self._codebase_answerer.answer(repository_path, question)
+        evidence_text = "\n".join(
+            f"{item.file_path}:{item.line_start}-{item.line_end}\n{item.quote}"
+            for item in answer.evidence
+        )
+        return "\n".join(
+            [
+                str(answer.completed).lower(),
+                answer.repository_path,
+                answer.answer,
+                evidence_text,
             ]
         )
 

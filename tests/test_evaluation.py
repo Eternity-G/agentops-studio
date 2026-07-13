@@ -34,12 +34,19 @@ def test_evaluation_runner_passes_mixed_cases() -> None:
             input={"session_id": "test-session", "content": "保存备注"},
             expected_contains=["test-session", "note", "保存备注"],
         ),
+        EvalCase(
+            case_id="codebase",
+            case_type=EvalCaseType.CODEBASE_QA,
+            description="代码仓库问答",
+            input={"repository_path": ".", "question": "AgentRuntime 的主流程是什么？"},
+            expected_contains=["app/agent.py", "AgentRuntime"],
+        ),
     ]
 
     report = EvaluationRunner().run_sync(cases)
 
-    assert report.total == 3
-    assert report.passed == 3
+    assert report.total == 4
+    assert report.passed == 4
     assert report.failed == 0
 
 
@@ -69,9 +76,10 @@ def test_load_cases_reads_default_eval_file() -> None:
 
     cases = load_cases()
 
-    assert len(cases) == 3
+    assert len(cases) == 4
     assert {case.case_type for case in cases} == {
         EvalCaseType.TASK_RUN,
         EvalCaseType.DOCUMENT_QA,
         EvalCaseType.SESSION_MEMORY,
+        EvalCaseType.CODEBASE_QA,
     }

@@ -1,13 +1,19 @@
-# AgentOps Studio
+# Codebase AgentOps Studio
 
-AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目标不是做一个简单聊天机器人，而是逐步搭建一个包含任务规划、模型适配、工具调用、Trace、记忆、评测和部署能力的 Agent 工程平台。
+Codebase AgentOps Studio 是一个面向企业研发团队的代码仓库问答与代码理解 Agent。它面向新人 onboarding、功能定位、代码解释、影响分析和 PR Review 等真实研发场景，帮助开发者快速理解复杂代码仓库，并返回带文件路径、行号和证据片段的答案。
 
 ## 当前状态
 
-当前固定路线共 **18 步**，已全部完成。
+当前项目已经从通用 Agent 学习平台升级为 **企业级代码仓库问答与代码理解 Agent**。
 
 已经具备的核心能力：
 
+- `POST /codebase/summary` 可以扫描本地仓库，识别目录、语言、关键文件、前端/后端信号。
+- `POST /codebase/search` 可以按关键词搜索代码，并返回文件路径与行号。
+- `POST /codebase/symbols` 可以用 Python AST 提取类、函数、方法和 import。
+- `POST /codebase/ask` 可以围绕代码仓库回答问题，并返回代码证据。
+- `POST /codebase/impact` 可以分析目标文件被哪些模块引用，以及需要补哪些测试。
+- `POST /codebase/review-diff` 可以分析当前 git diff，给出风险点和测试建议。
 - FastAPI 服务可以启动，并提供 `GET /health` 和 `POST /tasks/run`。
 - Pydantic schema 可以约束任务输入、执行计划、步骤、工具结果和最终答案。
 - `MockProvider` 和 `DeepSeekProvider` 已接入统一模型提供商接口。
@@ -23,10 +29,10 @@ AgentOps Studio 是一个用于学习和构建 Agent 工程系统的项目。目
 - `POST /documents/ask` 可以通过 HTTP 调用最小本地文档问答链路。
 - `InMemorySessionStore` 可以保存任务运行、文档问答和人工备注事件。
 - `GET /sessions/{session_id}` 和 `POST /sessions/{session_id}/notes` 可以观察和追加会话记忆。
-- `EvaluationRunner` 可以离线评测任务主链路、文档问答链路和会话记忆链路。
+- `EvaluationRunner` 可以离线评测任务主链路、文档问答、会话记忆和代码仓库问答链路。
 - `scripts/run_evals.py` 可以读取 `evals/cases.json` 并生成 `evals/latest-report.md`。
 - FastAPI 可以托管浏览器 Demo 页面、静态资源和最新评测报告。
-- 前端页面可以调用任务运行、文档问答、会话记忆和评测报告接口。
+- 前端页面可以调用仓库概览、代码问答、影响分析、Diff Review 和评测报告接口。
 - 项目已经补齐 Dockerfile、部署说明、简历项目描述和最终复盘文档。
 
 当前生产化边界：
@@ -92,6 +98,38 @@ http://localhost:8000/openapi.json
 http://localhost:8000/
 ```
 
+运行代码仓库概览：
+
+```bash
+curl -X POST http://localhost:8000/codebase/summary ^
+  -H "Content-Type: application/json" ^
+  -d "{\"repository_path\":\".\"}"
+```
+
+运行代码仓库问答：
+
+```bash
+curl -X POST http://localhost:8000/codebase/ask ^
+  -H "Content-Type: application/json" ^
+  -d "{\"repository_path\":\".\",\"question\":\"AgentRuntime 的主流程是什么？\"}"
+```
+
+运行影响分析：
+
+```bash
+curl -X POST http://localhost:8000/codebase/impact ^
+  -H "Content-Type: application/json" ^
+  -d "{\"repository_path\":\".\",\"target_path\":\"app/schemas.py\"}"
+```
+
+运行 Diff Review：
+
+```bash
+curl -X POST http://localhost:8000/codebase/review-diff ^
+  -H "Content-Type: application/json" ^
+  -d "{\"repository_path\":\".\"}"
+```
+
 运行 Agent API Demo：
 
 ```bash
@@ -140,7 +178,7 @@ python -m pytest
 当前期望结果：
 
 ```text
-84 passed
+92 passed
 ```
 
 Planner fallback 验证：
@@ -203,6 +241,18 @@ python scripts/run_evals.py
 ```text
 3 passed
 通过率：100%
+```
+
+代码仓库 Agent 验证：
+
+```bash
+python -m pytest tests/test_codebase.py
+```
+
+期望结果：
+
+```text
+8 passed
 ```
 
 前端页面验证：

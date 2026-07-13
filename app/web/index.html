@@ -3,21 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AgentOps Studio</title>
+    <title>Codebase AgentOps Studio</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
         <div>
-          <p class="eyebrow">AgentOps Studio</p>
-          <h1>Agent 工程控制台</h1>
+          <p class="eyebrow">Codebase AgentOps Studio</p>
+          <h1>代码仓库理解 Agent</h1>
         </div>
-        <img class="flow-map" src="/static/assets/flow.svg" alt="Agent workflow map" />
+        <img class="flow-map" src="/static/assets/flow.svg" alt="Codebase agent workflow map" />
         <nav class="nav-list" aria-label="页面导航">
-          <a href="#task-panel">任务</a>
-          <a href="#document-panel">文档</a>
-          <a href="#session-panel">会话</a>
+          <a href="#summary-panel">仓库概览</a>
+          <a href="#ask-panel">代码问答</a>
+          <a href="#impact-panel">影响分析</a>
+          <a href="#review-panel">Diff Review</a>
           <a href="#eval-panel">评测</a>
         </nav>
       </aside>
@@ -32,62 +33,64 @@
         </section>
 
         <section class="panel-grid">
-          <article id="task-panel" class="panel">
+          <article id="summary-panel" class="panel">
             <header>
-              <h2>任务运行</h2>
-              <span class="tag">/tasks/run</span>
+              <h2>仓库概览</h2>
+              <span class="tag">/codebase/summary</span>
             </header>
             <label>
-              <span>任务</span>
-              <textarea id="taskInput">分析 AgentOps Studio 当前能力</textarea>
+              <span>仓库路径</span>
+              <input id="summaryRepo" value="." />
             </label>
-            <label>
-              <span>会话 ID</span>
-              <input id="taskSession" value="demo-session" />
-            </label>
-            <button id="runTaskButton" type="button">运行任务</button>
-            <pre id="taskOutput" class="output"></pre>
+            <button id="loadSummaryButton" type="button">扫描仓库</button>
+            <pre id="summaryOutput" class="output"></pre>
           </article>
 
-          <article id="document-panel" class="panel">
+          <article id="ask-panel" class="panel">
             <header>
-              <h2>文档问答</h2>
-              <span class="tag">/documents/ask</span>
+              <h2>代码问答</h2>
+              <span class="tag">/codebase/ask</span>
             </header>
+            <label>
+              <span>仓库路径</span>
+              <input id="askRepo" value="." />
+            </label>
             <label>
               <span>问题</span>
-              <textarea id="questionInput">第 13 步实现了什么？</textarea>
+              <textarea id="codeQuestion">AgentRuntime 的主流程是什么？</textarea>
             </label>
-            <label>
-              <span>Markdown 路径</span>
-              <input id="documentPath" value="docs/第13步-本地Markdown文档读取工具.md" />
-            </label>
-            <label>
-              <span>会话 ID</span>
-              <input id="documentSession" value="demo-session" />
-            </label>
-            <button id="askDocumentButton" type="button">提交问题</button>
-            <pre id="documentOutput" class="output"></pre>
+            <button id="askCodebaseButton" type="button">提交问题</button>
+            <pre id="askOutput" class="output"></pre>
           </article>
 
-          <article id="session-panel" class="panel">
+          <article id="impact-panel" class="panel">
             <header>
-              <h2>会话记忆</h2>
-              <span class="tag">/sessions</span>
+              <h2>影响分析</h2>
+              <span class="tag">/codebase/impact</span>
             </header>
             <label>
-              <span>会话 ID</span>
-              <input id="sessionId" value="demo-session" />
+              <span>仓库路径</span>
+              <input id="impactRepo" value="." />
             </label>
             <label>
-              <span>备注</span>
-              <textarea id="noteInput">记录一次前端 Demo 操作</textarea>
+              <span>目标文件</span>
+              <input id="impactPath" value="app/schemas.py" />
             </label>
-            <div class="button-row">
-              <button id="loadSessionButton" type="button">查看会话</button>
-              <button id="appendNoteButton" type="button">追加备注</button>
-            </div>
-            <pre id="sessionOutput" class="output"></pre>
+            <button id="impactButton" type="button">分析影响</button>
+            <pre id="impactOutput" class="output"></pre>
+          </article>
+
+          <article id="review-panel" class="panel">
+            <header>
+              <h2>Diff Review</h2>
+              <span class="tag">/codebase/review-diff</span>
+            </header>
+            <label>
+              <span>仓库路径</span>
+              <input id="reviewRepo" value="." />
+            </label>
+            <button id="reviewButton" type="button">分析当前 Diff</button>
+            <pre id="reviewOutput" class="output"></pre>
           </article>
 
           <article id="eval-panel" class="panel">

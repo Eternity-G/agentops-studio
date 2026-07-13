@@ -37,5 +37,19 @@
       "note",
       "评测系统记录一次会话备注"
     ]
+  },
+  {
+    "case_id": "codebase-agent-runtime",
+    "case_type": "codebase_qa",
+    "description": "代码仓库问答应能定位 AgentRuntime 主链路",
+    "input": {
+      "repository_path": ".",
+      "question": "AgentRuntime 的主流程是什么？"
+    },
+    "expected_contains": [
+      "app/agent.py",
+      "AgentRuntime",
+      "plan"
+    ]
   }
 ]

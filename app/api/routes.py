@@ -5,6 +5,7 @@
 2. `POST /tasks/run` 用于演示 Agent 主链路和基础 Trace。
 3. `POST /documents/ask` 用于演示最小本地文档问答链路。
 4. `GET /sessions/{session_id}` 和 `POST /sessions/{session_id}/notes` 用于演示内存会话状态。
+5. `POST /codebase/*` 用于企业代码仓库问答、搜索、影响分析和 Diff Review。
 """
 
 from __future__ import annotations
@@ -18,12 +19,28 @@ from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.agent import AgentRuntime, AgentState
+from app.codebase.qa import CodebaseQuestionAnswerer
+from app.codebase.review import DiffReviewer
+from app.codebase.scanner import RepositoryScanner
+from app.codebase.search import CodeSearcher
+from app.codebase.symbols import PythonSymbolAnalyzer
 from app.document_qa import MarkdownQuestionAnswerer
 from app.memory import InMemorySessionStore
 from app.schemas import (
+    CodeImpactInput,
+    CodeImpactReport,
+    CodeSearchInput,
+    CodeSearchMatch,
+    CodebaseAnswer,
+    CodebaseInput,
+    CodebaseQuestionInput,
+    CodebaseSummary,
     DocumentQuestionAnswer,
     DocumentQuestionInput,
+    DiffReviewReport,
+    MemoryEventType,
     MemoryNoteInput,
+    PythonSymbol,
     SessionState,
     TaskInput,
 )
@@ -113,6 +130,62 @@ def create_app() -> FastAPI:
         if not eval_report_path.exists():
             return PlainTextResponse("评测报告不存在，请先运行 python scripts/run_evals.py。", status_code=404)
         return PlainTextResponse(eval_report_path.read_text(encoding="utf-8"))
+
+    @application.post("/codebase/summary", response_model=CodebaseSummary, tags=["codebase"])
+    def codebase_summary(codebase_input: CodebaseInput) -> CodebaseSummary:
+        """Summarize a local code repository."""
+
+        return RepositoryScanner().summarize(codebase_input.repository_path)
+
+    @application.post("/codebase/search", response_model=list[CodeSearchMatch], tags=["codebase"])
+    def codebase_search(search_input: CodeSearchInput) -> list[CodeSearchMatch]:
+        """Search source code by keyword."""
+
+        return CodeSearcher().search(
+            search_input.repository_path,
+            search_input.query,
+            limit=search_input.limit,
+        )
+
+    @application.post("/codebase/symbols", response_model=list[PythonSymbol], tags=["codebase"])
+    def codebase_symbols(codebase_input: CodebaseInput) -> list[PythonSymbol]:
+        """Extract Python symbols from a repository."""
+
+        return PythonSymbolAnalyzer().analyze_repository(codebase_input.repository_path)
+
+    @application.post("/codebase/ask", response_model=CodebaseAnswer, tags=["codebase"])
+    def codebase_ask(question_input: CodebaseQuestionInput) -> CodebaseAnswer:
+        """Answer developer questions from code repository evidence."""
+
+        answerer = CodebaseQuestionAnswerer()
+        answer = answerer.answer(question_input.repository_path, question_input.question)
+        if question_input.session_id:
+            memory_store.append_event(
+                session_id=question_input.session_id,
+                event_type=MemoryEventType.CODEBASE_QA,
+                summary=f"代码仓库问答：{question_input.question[:80]}",
+                payload={
+                    "question": question_input.question,
+                    "repository_path": answer.repository_path,
+                    "evidence_count": len(answer.evidence),
+                },
+            )
+        return answer
+
+    @application.post("/codebase/impact", response_model=CodeImpactReport, tags=["codebase"])
+    def codebase_impact(impact_input: CodeImpactInput) -> CodeImpactReport:
+        """Analyze file-level impact for a target file."""
+
+        return CodebaseQuestionAnswerer().impact(
+            impact_input.repository_path,
+            impact_input.target_path,
+        )
+
+    @application.post("/codebase/review-diff", response_model=DiffReviewReport, tags=["codebase"])
+    def codebase_review_diff(codebase_input: CodebaseInput) -> DiffReviewReport:
+        """Review current git diff in a repository."""
+
+        return DiffReviewer().review(codebase_input.repository_path)
 
     return application
 

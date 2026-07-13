@@ -1,18 +1,10 @@
 const healthStatus = document.querySelector("#healthStatus");
 const statusDot = document.querySelector(".status-dot");
 
-const taskInput = document.querySelector("#taskInput");
-const taskSession = document.querySelector("#taskSession");
-const taskOutput = document.querySelector("#taskOutput");
-
-const questionInput = document.querySelector("#questionInput");
-const documentPath = document.querySelector("#documentPath");
-const documentSession = document.querySelector("#documentSession");
-const documentOutput = document.querySelector("#documentOutput");
-
-const sessionId = document.querySelector("#sessionId");
-const noteInput = document.querySelector("#noteInput");
-const sessionOutput = document.querySelector("#sessionOutput");
+const summaryOutput = document.querySelector("#summaryOutput");
+const askOutput = document.querySelector("#askOutput");
+const impactOutput = document.querySelector("#impactOutput");
+const reviewOutput = document.querySelector("#reviewOutput");
 const evalOutput = document.querySelector("#evalOutput");
 
 function pretty(value) {
@@ -61,42 +53,47 @@ async function checkHealth() {
   }
 }
 
-document.querySelector("#runTaskButton").addEventListener("click", (event) => {
-  withButton(event.currentTarget, taskOutput, () =>
-    requestJson("/tasks/run", {
+document.querySelector("#loadSummaryButton").addEventListener("click", (event) => {
+  withButton(event.currentTarget, summaryOutput, () =>
+    requestJson("/codebase/summary", {
       method: "POST",
       body: JSON.stringify({
-        task: taskInput.value,
-        metadata: { session_id: taskSession.value },
+        repository_path: document.querySelector("#summaryRepo").value,
       }),
     }),
   );
 });
 
-document.querySelector("#askDocumentButton").addEventListener("click", (event) => {
-  withButton(event.currentTarget, documentOutput, () =>
-    requestJson("/documents/ask", {
+document.querySelector("#askCodebaseButton").addEventListener("click", (event) => {
+  withButton(event.currentTarget, askOutput, () =>
+    requestJson("/codebase/ask", {
       method: "POST",
       body: JSON.stringify({
-        question: questionInput.value,
-        path: documentPath.value,
-        session_id: documentSession.value,
+        repository_path: document.querySelector("#askRepo").value,
+        question: document.querySelector("#codeQuestion").value,
       }),
     }),
   );
 });
 
-document.querySelector("#loadSessionButton").addEventListener("click", (event) => {
-  withButton(event.currentTarget, sessionOutput, () => requestJson(`/sessions/${sessionId.value}`));
-});
-
-document.querySelector("#appendNoteButton").addEventListener("click", (event) => {
-  withButton(event.currentTarget, sessionOutput, () =>
-    requestJson(`/sessions/${sessionId.value}/notes`, {
+document.querySelector("#impactButton").addEventListener("click", (event) => {
+  withButton(event.currentTarget, impactOutput, () =>
+    requestJson("/codebase/impact", {
       method: "POST",
       body: JSON.stringify({
-        content: noteInput.value,
-        metadata: { source: "web" },
+        repository_path: document.querySelector("#impactRepo").value,
+        target_path: document.querySelector("#impactPath").value,
+      }),
+    }),
+  );
+});
+
+document.querySelector("#reviewButton").addEventListener("click", (event) => {
+  withButton(event.currentTarget, reviewOutput, () =>
+    requestJson("/codebase/review-diff", {
+      method: "POST",
+      body: JSON.stringify({
+        repository_path: document.querySelector("#reviewRepo").value,
       }),
     }),
   );

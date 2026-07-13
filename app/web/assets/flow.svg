@@ -1,33 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270" role="img" aria-labelledby="title desc">
-  <title id="title">Agent workflow map</title>
-  <desc id="desc">A compact workflow diagram for task, document, memory, and evaluation modules.</desc>
+  <title id="title">Codebase agent workflow map</title>
+  <desc id="desc">Workflow diagram for repository scan, search, symbols, answer, impact, and review.</desc>
   <rect width="360" height="270" fill="#eef1ec"/>
   <g fill="#ffffff" stroke="#cfd7cb" stroke-width="2">
-    <rect x="32" y="34" width="126" height="52"/>
-    <rect x="202" y="34" width="126" height="52"/>
-    <rect x="32" y="112" width="126" height="52"/>
-    <rect x="202" y="112" width="126" height="52"/>
-    <rect x="117" y="190" width="126" height="52"/>
+    <rect x="24" y="30" width="132" height="48"/>
+    <rect x="204" y="30" width="132" height="48"/>
+    <rect x="24" y="111" width="132" height="48"/>
+    <rect x="204" y="111" width="132" height="48"/>
+    <rect x="114" y="192" width="132" height="48"/>
   </g>
   <g stroke="#1f7a5f" stroke-width="3" fill="none" stroke-linecap="round">
-    <path d="M158 60h44"/>
-    <path d="M265 86v26"/>
-    <path d="M202 138h-44"/>
-    <path d="M95 164v26"/>
-    <path d="M158 216h44"/>
+    <path d="M156 54h48"/>
+    <path d="M270 78v33"/>
+    <path d="M204 135h-48"/>
+    <path d="M90 159v33"/>
+    <path d="M156 216h48"/>
   </g>
   <g fill="#1f241f" font-family="Arial, sans-serif" font-size="15" font-weight="700">
-    <text x="95" y="66" text-anchor="middle">Task</text>
-    <text x="265" y="66" text-anchor="middle">Plan</text>
-    <text x="95" y="144" text-anchor="middle">Docs</text>
-    <text x="265" y="144" text-anchor="middle">Memory</text>
-    <text x="180" y="222" text-anchor="middle">Eval</text>
+    <text x="90" y="59" text-anchor="middle">Scan</text>
+    <text x="270" y="59" text-anchor="middle">Search</text>
+    <text x="90" y="140" text-anchor="middle">Symbols</text>
+    <text x="270" y="140" text-anchor="middle">Answer</text>
+    <text x="180" y="221" text-anchor="middle">Review</text>
   </g>
   <g fill="#687065" font-family="Arial, sans-serif" font-size="11">
-    <text x="95" y="80" text-anchor="middle">/tasks/run</text>
-    <text x="265" y="80" text-anchor="middle">Planner</text>
-    <text x="95" y="158" text-anchor="middle">Markdown</text>
-    <text x="265" y="158" text-anchor="middle">Session</text>
-    <text x="180" y="236" text-anchor="middle">Report</text>
+    <text x="90" y="72" text-anchor="middle">Repository</text>
+    <text x="270" y="72" text-anchor="middle">Evidence</text>
+    <text x="90" y="153" text-anchor="middle">AST</text>
+    <text x="270" y="153" text-anchor="middle">Grounded QA</text>
+    <text x="180" y="234" text-anchor="middle">Impact + Diff</text>
   </g>
 </svg>
