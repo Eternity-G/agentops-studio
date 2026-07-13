@@ -50,7 +50,7 @@ class CodeSearcher:
 
         files: list[Path] = []
         for path in repository_root.rglob("*"):
-            if any(self._security.is_ignored_dir(parent) for parent in path.parents):
+            if self._has_ignored_relative_part(repository_root, path):
                 continue
             if self._security.is_supported_file(path):
                 files.append(path)
@@ -73,3 +73,9 @@ class CodeSearcher:
 
         suffix_rank = 1 if relative_path.endswith((".md", ".json", ".yaml", ".yml", ".toml")) else 0
         return (source_rank, suffix_rank, relative_path)
+
+    def _has_ignored_relative_part(self, repository_root: Path, path: Path) -> bool:
+        """Return whether a path contains ignored directories inside the repository."""
+
+        relative_parts = path.relative_to(repository_root).parts[:-1]
+        return any(part in self._security.ignored_dir_names for part in relative_parts)

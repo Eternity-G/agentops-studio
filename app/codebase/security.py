@@ -116,6 +116,12 @@ class RepositorySecurity:
 
         return path.name in DEFAULT_IGNORED_DIRS
 
+    @property
+    def ignored_dir_names(self) -> set[str]:
+        """Return ignored directory names for repository-relative checks."""
+
+        return set(DEFAULT_IGNORED_DIRS)
+
     def is_supported_file(self, path: Path) -> bool:
         """Return whether a file can be read for code analysis."""
 

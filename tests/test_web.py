@@ -32,6 +32,7 @@ def test_static_assets_are_served() -> None:
     assert "panel-grid" in css_response.text
     assert js_response.status_code == 200
     assert "/codebase/ask" in js_response.text
+    assert "formatSummary" in js_response.text
     assert svg_response.status_code == 200
     assert "<svg" in svg_response.text
 

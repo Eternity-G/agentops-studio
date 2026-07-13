@@ -22,7 +22,7 @@ class PythonSymbolAnalyzer:
         symbols: list[PythonSymbol] = []
 
         for path in sorted(repository_root.rglob("*.py")):
-            if any(self._security.is_ignored_dir(parent) for parent in path.parents):
+            if self._has_ignored_relative_part(repository_root, path):
                 continue
             symbols.extend(self.analyze_file(repository_root, path.relative_to(repository_root).as_posix()))
 
@@ -115,3 +115,9 @@ class PythonSymbolAnalyzer:
                     )
                 )
         return imports
+
+    def _has_ignored_relative_part(self, repository_root: Path, path: Path) -> bool:
+        """Return whether a path contains ignored directories inside the repository."""
+
+        relative_parts = path.relative_to(repository_root).parts[:-1]
+        return any(part in self._security.ignored_dir_names for part in relative_parts)
