@@ -15,8 +15,9 @@ def test_web_index_returns_demo_page() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
     assert "代码仓库理解 Agent" in response.text
-    assert "/static/app.js" in response.text
+    assert "/static/app.js?v=codebase-overview-report-20260713" in response.text
 
 
 def test_static_assets_are_served() -> None:

@@ -74,7 +74,10 @@ def create_app() -> FastAPI:
     def web_index() -> FileResponse:
         """Return the browser demo page."""
 
-        return FileResponse(web_dir / "index.html")
+        return FileResponse(
+            web_dir / "index.html",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @application.get("/health", tags=["system"])
     def health_check() -> dict[str, Any]:
