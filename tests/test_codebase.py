@@ -151,6 +151,7 @@ def test_codebase_api_exposes_summary_search_and_ask() -> None:
     client = TestClient(create_app())
 
     summary_response = client.post("/codebase/summary", json={"repository_path": "."})
+    overview_response = client.post("/codebase/overview", json={"repository_path": "."})
     search_response = client.post(
         "/codebase/search",
         json={"repository_path": ".", "query": "AgentRuntime", "limit": 5},
@@ -162,6 +163,9 @@ def test_codebase_api_exposes_summary_search_and_ask() -> None:
 
     assert summary_response.status_code == 200
     assert summary_response.json()["analyzed_files"] > 0
+    assert overview_response.status_code == 200
+    assert "仓库理解报告" in overview_response.json()["report"]
+    assert "这个项目是做什么的" in overview_response.json()["report"]
     assert search_response.status_code == 200
     assert search_response.json()
     assert ask_response.status_code == 200
@@ -178,6 +182,7 @@ def test_openapi_contains_codebase_paths() -> None:
 
     assert response.status_code == 200
     assert "/codebase/summary" in schema["paths"]
+    assert "/codebase/overview" in schema["paths"]
     assert "/codebase/ask" in schema["paths"]
     assert "/codebase/impact" in schema["paths"]
     assert "/codebase/review-diff" in schema["paths"]

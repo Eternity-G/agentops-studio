@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.agent import AgentRuntime, AgentState
+from app.codebase.overview import CodebaseOverviewer
 from app.codebase.qa import CodebaseQuestionAnswerer
 from app.codebase.review import DiffReviewer
 from app.codebase.scanner import RepositoryScanner
@@ -33,6 +34,7 @@ from app.schemas import (
     CodeSearchMatch,
     CodebaseAnswer,
     CodebaseInput,
+    CodebaseOverview,
     CodebaseQuestionInput,
     CodebaseSummary,
     DocumentQuestionAnswer,
@@ -136,6 +138,12 @@ def create_app() -> FastAPI:
         """Summarize a local code repository."""
 
         return RepositoryScanner().summarize(codebase_input.repository_path)
+
+    @application.post("/codebase/overview", response_model=CodebaseOverview, tags=["codebase"])
+    def codebase_overview(codebase_input: CodebaseInput) -> CodebaseOverview:
+        """Build a human-readable overview report for a local code repository."""
+
+        return CodebaseOverviewer().build(codebase_input.repository_path)
 
     @application.post("/codebase/search", response_model=list[CodeSearchMatch], tags=["codebase"])
     def codebase_search(search_input: CodeSearchInput) -> list[CodeSearchMatch]:

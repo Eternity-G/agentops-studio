@@ -29,28 +29,8 @@ function languageText(languages) {
   return entries.map(([name, count]) => `${name}: ${count}`).join("\n");
 }
 
-function formatSummary(summary) {
-  return [
-    "仓库概览报告",
-    "",
-    `仓库路径：${summary.repository_path}`,
-    `总文件数：${summary.total_files}`,
-    `可分析文件数：${summary.analyzed_files}`,
-    `估算代码行数：${summary.total_lines}`,
-    "",
-    "主要语言：",
-    languageText(summary.languages),
-    "",
-    `顶层目录：${listText(summary.top_level_directories)}`,
-    `关键文件：${listText((summary.key_files || []).slice(0, 12))}`,
-    `前端信号：${listText(summary.frontend_signals)}`,
-    `后端信号：${listText(summary.backend_signals)}`,
-    "",
-    "解读：",
-    summary.analyzed_files === 0
-      ? "没有找到可分析文件。请确认你输入的是具体仓库目录，例如 external-repos/novu，而不是 external-repos 这种容器目录。"
-      : "系统已经完成静态扫描。下一步可以在代码问答里提问，例如“后端入口在哪里？”或“某个功能在哪里实现？”。",
-  ].join("\n");
+function formatOverview(overview) {
+  return overview.report || pretty(overview);
 }
 
 function formatCodebaseAnswer(answer) {
@@ -152,12 +132,12 @@ async function checkHealth() {
 
 document.querySelector("#loadSummaryButton").addEventListener("click", (event) => {
   withButton(event.currentTarget, summaryOutput, () =>
-    requestJson("/codebase/summary", {
+    requestJson("/codebase/overview", {
       method: "POST",
       body: JSON.stringify({
         repository_path: document.querySelector("#summaryRepo").value,
       }),
-    }).then(formatSummary),
+    }).then(formatOverview),
   );
 });
 

@@ -196,6 +196,23 @@ class CodebaseSummary(StrictSchema):
     backend_signals: list[ShortText] = Field(default_factory=list, max_length=20)
 
 
+class CodebaseOverview(StrictSchema):
+    """Human-readable repository overview produced from static evidence."""
+
+    repository_path: ShortText
+    project_name: ShortText
+    project_type: ShortText
+    overview: LongText
+    architecture: LongText
+    main_modules: list[ShortText] = Field(default_factory=list, max_length=20)
+    entry_points: list[CodeEvidence] = Field(default_factory=list, max_length=10)
+    setup_hints: list[ShortText] = Field(default_factory=list, max_length=10)
+    suggested_questions: list[ShortText] = Field(default_factory=list, max_length=10)
+    risk_notes: list[ShortText] = Field(default_factory=list, max_length=10)
+    summary: CodebaseSummary
+    report: LongText = Field(description="Markdown-like report ready for user display.")
+
+
 class CodeSearchMatch(StrictSchema):
     """One keyword match in a code repository."""
 
