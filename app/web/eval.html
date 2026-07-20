@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>评测报告 - 代码仓库理解 Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="eval">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/">
+          <span>Codebase AgentOps Studio</span>
+          <strong>代码仓库理解 Agent</strong>
+        </a>
+        <nav class="nav-list" aria-label="页面导航">
+          <a href="/">功能首页</a>
+          <a href="/overview">仓库概览</a>
+          <a href="/ask">代码问答</a>
+          <a href="/impact">影响分析</a>
+          <a href="/review">Diff Review</a>
+          <a class="active" href="/eval">评测报告</a>
+        </nav>
+      </aside>
+      <main class="workspace">
+        <section class="toolbar">
+          <div><span class="status-dot"></span><span id="healthStatus">检查中</span></div>
+          <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+        </section>
+        <section class="tool-layout">
+          <form class="tool-form" id="evalForm">
+            <p class="eyebrow">Evaluation</p>
+            <h1>评测报告</h1>
+            <p class="form-copy">加载最近一次离线评测结果，用于确认项目能力没有退化。</p>
+            <button type="submit">加载评测报告</button>
+          </form>
+          <article class="result-pane">
+            <header><h2>latest-report.md</h2><span class="tag">/evals/latest-report</span></header>
+            <div id="evalOutput" class="markdown-output empty">评测报告会显示在这里。</div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js?v=markdown-table-20260720"></script>
+  </body>
+</html>

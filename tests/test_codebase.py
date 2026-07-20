@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.api.routes import create_app
+from app.codebase.overview import CodebaseOverviewer
 from app.codebase.qa import CodebaseQuestionAnswerer
 from app.codebase.scanner import RepositoryScanner
 from app.codebase.search import CodeSearcher
@@ -127,6 +128,47 @@ def test_codebase_impact_finds_references(tmp_path: Path) -> None:
     assert report.target_path == "backend/service.py"
     assert any(evidence.file_path == "backend/api.py" for evidence in report.referenced_by)
     assert report.test_suggestions
+
+
+def test_codebase_overview_can_use_llm_client(tmp_path: Path) -> None:
+    """Overview should be able to synthesize a Markdown report with an LLM client."""
+
+    _create_sample_repo(tmp_path)
+    prompts: list[tuple[str, str]] = []
+
+    def fake_llm(system_prompt: str, user_prompt: str) -> str:
+        prompts.append((system_prompt, user_prompt))
+        return "# Sample Repo 深度报告\n\n## 项目一句话定位\n基于 `README.md` 和 `package.json` 判断。"
+
+    overviewer = CodebaseOverviewer(security=RepositorySecurity(tmp_path), llm_client=fake_llm)
+
+    overview = overviewer.build("sample-repo")
+
+    assert overview.analysis_source == "deepseek"
+    assert "Sample Repo 深度报告" in overview.report
+    assert "README.md" in prompts[0][1]
+
+
+def test_codebase_overview_allows_many_entry_points(tmp_path: Path) -> None:
+    """Large repositories can expose more than ten overview evidence files."""
+
+    repo = _create_sample_repo(tmp_path)
+    apps = repo / "apps"
+    apps.mkdir()
+    for index in range(12):
+        module = apps / f"service-{index}"
+        module.mkdir()
+        (module / "package.json").write_text(
+            f'{{"name":"service-{index}","scripts":{{"dev":"node index.js"}}}}',
+            encoding="utf-8",
+        )
+
+    overviewer = CodebaseOverviewer(security=RepositorySecurity(tmp_path))
+
+    overview = overviewer.build("sample-repo")
+
+    assert overview.entry_points
+    assert len(overview.entry_points) > 10
 
 
 def test_security_rejects_sensitive_files(tmp_path: Path) -> None:

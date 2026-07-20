@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>代码问答 - 代码仓库理解 Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="ask">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/">
+          <span>Codebase AgentOps Studio</span>
+          <strong>代码仓库理解 Agent</strong>
+        </a>
+        <nav class="nav-list" aria-label="页面导航">
+          <a href="/">功能首页</a>
+          <a href="/overview">仓库概览</a>
+          <a class="active" href="/ask">代码问答</a>
+          <a href="/impact">影响分析</a>
+          <a href="/review">Diff Review</a>
+          <a href="/eval">评测报告</a>
+        </nav>
+      </aside>
+      <main class="workspace">
+        <section class="toolbar">
+          <div><span class="status-dot"></span><span id="healthStatus">检查中</span></div>
+          <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+        </section>
+        <section class="tool-layout">
+          <form class="tool-form" id="askForm">
+            <p class="eyebrow">Grounded Code QA</p>
+            <h1>代码问答</h1>
+            <p class="form-copy">适合询问入口文件、核心类、模块职责和某个概念在哪里实现。</p>
+            <label>
+              <span>仓库路径</span>
+              <input id="askRepo" value="." autocomplete="off" />
+            </label>
+            <label>
+              <span>问题</span>
+              <textarea id="codeQuestion">AgentRuntime 的主流程是什么？</textarea>
+            </label>
+            <button type="submit">提交问题</button>
+          </form>
+          <article class="result-pane">
+            <header><h2>回答与证据</h2><span class="tag">/codebase/ask</span></header>
+            <div id="askOutput" class="markdown-output empty">回答会显示在这里。</div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js?v=markdown-table-20260720"></script>
+  </body>
+</html>

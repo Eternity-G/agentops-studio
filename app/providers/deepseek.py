@@ -65,6 +65,28 @@ class DeepSeekProvider:
         plan_data = self._parse_json_content(content)
         return ExecutionPlan.model_validate(plan_data)
 
+    async def complete_text(self, *, system_prompt: str, user_prompt: str) -> str:
+        """Return free-form assistant text from DeepSeek.
+
+        `create_plan` is intentionally strict and only accepts JSON that can be
+        validated as `ExecutionPlan`. Codebase overview reports need Markdown
+        prose instead, so this method exposes the same OpenAI-compatible chat
+        endpoint without `response_format`.
+        """
+
+        payload = {
+            "model": self._model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        }
+        if self._transport is not None:
+            response = self._transport(payload)
+        else:
+            response = await asyncio.to_thread(self._post_chat_completion, payload)
+        return self._extract_message_content(response)
+
     def _build_payload(self, task_input: TaskInput) -> dict[str, Any]:
         """Build an OpenAI-compatible chat completion request."""
 

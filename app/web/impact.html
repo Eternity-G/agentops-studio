@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>影响分析 - 代码仓库理解 Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="impact">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/">
+          <span>Codebase AgentOps Studio</span>
+          <strong>代码仓库理解 Agent</strong>
+        </a>
+        <nav class="nav-list" aria-label="页面导航">
+          <a href="/">功能首页</a>
+          <a href="/overview">仓库概览</a>
+          <a href="/ask">代码问答</a>
+          <a class="active" href="/impact">影响分析</a>
+          <a href="/review">Diff Review</a>
+          <a href="/eval">评测报告</a>
+        </nav>
+      </aside>
+      <main class="workspace">
+        <section class="toolbar">
+          <div><span class="status-dot"></span><span id="healthStatus">检查中</span></div>
+          <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+        </section>
+        <section class="tool-layout">
+          <form class="tool-form" id="impactForm">
+            <p class="eyebrow">Change Impact</p>
+            <h1>影响分析</h1>
+            <p class="form-copy">输入目标文件，分析它可能影响的调用方、业务区域和测试范围。</p>
+            <label>
+              <span>仓库路径</span>
+              <input id="impactRepo" value="." autocomplete="off" />
+            </label>
+            <label>
+              <span>目标文件</span>
+              <input id="impactPath" value="app/schemas.py" autocomplete="off" />
+            </label>
+            <button type="submit">分析影响</button>
+          </form>
+          <article class="result-pane">
+            <header><h2>影响报告</h2><span class="tag">/codebase/impact</span></header>
+            <div id="impactOutput" class="markdown-output empty">影响分析结果会显示在这里。</div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js?v=markdown-table-20260720"></script>
+  </body>
+</html>

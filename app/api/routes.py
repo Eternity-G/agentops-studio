@@ -1,12 +1,4 @@
-"""FastAPI application routes.
-
-当前 API 包含两个最小接口：
-1. `GET /health` 用于健康检查。
-2. `POST /tasks/run` 用于演示 Agent 主链路和基础 Trace。
-3. `POST /documents/ask` 用于演示最小本地文档问答链路。
-4. `GET /sessions/{session_id}` 和 `POST /sessions/{session_id}/notes` 用于演示内存会话状态。
-5. `POST /codebase/*` 用于企业代码仓库问答、搜索、影响分析和 Diff Review。
-"""
+"""FastAPI application routes."""
 
 from __future__ import annotations
 
@@ -50,12 +42,7 @@ from app.settings import load_settings
 
 
 def create_app() -> FastAPI:
-    """Create and configure the FastAPI application.
-
-    使用工厂函数而不是直接在全局堆叠配置，有两个好处：
-    1. 测试可以创建一个干净的 app 实例。
-    2. 后续加入中间件、异常处理、生命周期事件时有统一入口。
-    """
+    """Create and configure the FastAPI application."""
 
     settings = load_settings()
     app_dir = Path(__file__).resolve().parents[1]
@@ -70,22 +57,50 @@ def create_app() -> FastAPI:
     memory_store = InMemorySessionStore()
     application.mount("/static", StaticFiles(directory=web_dir), name="static")
 
+    def page_response(file_name: str) -> FileResponse:
+        """Return one browser page without HTTP cache."""
+
+        return FileResponse(web_dir / file_name, headers={"Cache-Control": "no-store"})
+
     @application.get("/", tags=["web"])
     def web_index() -> FileResponse:
-        """Return the browser demo page."""
+        """Return the browser home page."""
 
-        return FileResponse(
-            web_dir / "index.html",
-            headers={"Cache-Control": "no-store"},
-        )
+        return page_response("index.html")
+
+    @application.get("/overview", tags=["web"])
+    def web_overview() -> FileResponse:
+        """Return the repository overview page."""
+
+        return page_response("overview.html")
+
+    @application.get("/ask", tags=["web"])
+    def web_ask() -> FileResponse:
+        """Return the codebase Q&A page."""
+
+        return page_response("ask.html")
+
+    @application.get("/impact", tags=["web"])
+    def web_impact() -> FileResponse:
+        """Return the impact analysis page."""
+
+        return page_response("impact.html")
+
+    @application.get("/review", tags=["web"])
+    def web_review() -> FileResponse:
+        """Return the diff review page."""
+
+        return page_response("review.html")
+
+    @application.get("/eval", tags=["web"])
+    def web_eval() -> FileResponse:
+        """Return the evaluation report page."""
+
+        return page_response("eval.html")
 
     @application.get("/health", tags=["system"])
     def health_check() -> dict[str, Any]:
-        """Return a lightweight health status for monitoring and tests.
-
-        健康检查必须保持轻量：这里不调用模型 API、不连接数据库、
-        不执行外部工具。更重的依赖检查后续应放到 `/ready` 或诊断接口。
-        """
+        """Return a lightweight health status for monitoring and tests."""
 
         current_settings = load_settings()
         return {
@@ -144,7 +159,7 @@ def create_app() -> FastAPI:
 
     @application.post("/codebase/overview", response_model=CodebaseOverview, tags=["codebase"])
     def codebase_overview(codebase_input: CodebaseInput) -> CodebaseOverview:
-        """Build a human-readable overview report for a local code repository."""
+        """Build a user-facing overview report for a local code repository."""
 
         return CodebaseOverviewer().build(codebase_input.repository_path)
 
@@ -201,6 +216,6 @@ def create_app() -> FastAPI:
     return application
 
 
-# Uvicorn 默认寻找模块级 ASGI 应用对象：
+# Uvicorn looks for this module-level ASGI object:
 #   python -m uvicorn app.api.routes:app --reload
 app = create_app()

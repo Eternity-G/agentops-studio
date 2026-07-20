@@ -87,6 +87,20 @@ def test_deepseek_provider_accepts_fenced_json_response() -> None:
     assert len(plan.steps) == 1
 
 
+def test_deepseek_provider_can_return_markdown_text() -> None:
+    """Provider should support non-JSON text generation for overview reports."""
+
+    def fake_transport(payload: dict[str, object]) -> dict[str, object]:
+        assert "response_format" not in payload
+        return {"choices": [{"message": {"content": "# 仓库理解报告\n\n基于证据生成。"}}]}
+
+    provider = DeepSeekProvider(api_key="test-key", transport=fake_transport)
+
+    report = asyncio.run(provider.complete_text(system_prompt="写报告", user_prompt="证据"))
+
+    assert "仓库理解报告" in report
+
+
 def test_deepseek_factory_uses_settings() -> None:
     """Factory should create DeepSeekProvider from AppSettings."""
 

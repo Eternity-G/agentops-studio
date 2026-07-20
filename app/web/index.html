@@ -3,23 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Codebase AgentOps Studio</title>
+    <title>代码仓库理解 Agent</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
-  <body>
+  <body data-page="home">
     <div class="app-shell">
       <aside class="sidebar">
-        <div>
-          <p class="eyebrow">Codebase AgentOps Studio</p>
-          <h1>代码仓库理解 Agent</h1>
-        </div>
+        <a class="brand" href="/">
+          <span>Codebase AgentOps Studio</span>
+          <strong>代码仓库理解 Agent</strong>
+        </a>
         <img class="flow-map" src="/static/assets/flow.svg" alt="Codebase agent workflow map" />
         <nav class="nav-list" aria-label="页面导航">
-          <a href="#summary-panel">仓库概览</a>
-          <a href="#ask-panel">代码问答</a>
-          <a href="#impact-panel">影响分析</a>
-          <a href="#review-panel">Diff Review</a>
-          <a href="#eval-panel">评测</a>
+          <a class="active" href="/">功能首页</a>
+          <a href="/overview">仓库概览</a>
+          <a href="/ask">代码问答</a>
+          <a href="/impact">影响分析</a>
+          <a href="/review">Diff Review</a>
+          <a href="/eval">评测报告</a>
         </nav>
       </aside>
 
@@ -32,78 +33,44 @@
           <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
         </section>
 
-        <section class="panel-grid">
-          <article id="summary-panel" class="panel">
-            <header>
-              <h2>仓库概览</h2>
-              <span class="tag">/codebase/overview</span>
-            </header>
-            <label>
-              <span>仓库路径</span>
-              <input id="summaryRepo" value="." />
-            </label>
-            <button id="loadSummaryButton" type="button">扫描仓库</button>
-            <pre id="summaryOutput" class="output"></pre>
-          </article>
+        <section class="page-head">
+          <p class="eyebrow">Codebase Understanding</p>
+          <h1>把大型代码仓库转成可追问、可验证的工程知识</h1>
+          <p>
+            当前系统支持仓库概览、代码问答、影响分析、Diff Review 和评测报告。
+            每个能力独立成页，便于按真实研发工作流使用。
+          </p>
+        </section>
 
-          <article id="ask-panel" class="panel">
-            <header>
-              <h2>代码问答</h2>
-              <span class="tag">/codebase/ask</span>
-            </header>
-            <label>
-              <span>仓库路径</span>
-              <input id="askRepo" value="." />
-            </label>
-            <label>
-              <span>问题</span>
-              <textarea id="codeQuestion">AgentRuntime 的主流程是什么？</textarea>
-            </label>
-            <button id="askCodebaseButton" type="button">提交问题</button>
-            <pre id="askOutput" class="output"></pre>
-          </article>
-
-          <article id="impact-panel" class="panel">
-            <header>
-              <h2>影响分析</h2>
-              <span class="tag">/codebase/impact</span>
-            </header>
-            <label>
-              <span>仓库路径</span>
-              <input id="impactRepo" value="." />
-            </label>
-            <label>
-              <span>目标文件</span>
-              <input id="impactPath" value="app/schemas.py" />
-            </label>
-            <button id="impactButton" type="button">分析影响</button>
-            <pre id="impactOutput" class="output"></pre>
-          </article>
-
-          <article id="review-panel" class="panel">
-            <header>
-              <h2>Diff Review</h2>
-              <span class="tag">/codebase/review-diff</span>
-            </header>
-            <label>
-              <span>仓库路径</span>
-              <input id="reviewRepo" value="." />
-            </label>
-            <button id="reviewButton" type="button">分析当前 Diff</button>
-            <pre id="reviewOutput" class="output"></pre>
-          </article>
-
-          <article id="eval-panel" class="panel">
-            <header>
-              <h2>评测报告</h2>
-              <span class="tag">latest-report.md</span>
-            </header>
-            <button id="loadEvalButton" type="button">加载报告</button>
-            <pre id="evalOutput" class="output"></pre>
-          </article>
+        <section class="feature-grid" aria-label="功能入口">
+          <a class="feature-card" href="/overview">
+            <span class="feature-kicker">DeepSeek + Evidence</span>
+            <h2>仓库概览</h2>
+            <p>扫描 README、配置、模块入口和关键源码证据，生成面向开发者的 Markdown 仓库理解报告。</p>
+          </a>
+          <a class="feature-card" href="/ask">
+            <span class="feature-kicker">Grounded QA</span>
+            <h2>代码问答</h2>
+            <p>围绕一个仓库提问，返回答案、搜索词和代码证据，适合定位入口、职责和实现位置。</p>
+          </a>
+          <a class="feature-card" href="/impact">
+            <span class="feature-kicker">Change Impact</span>
+            <h2>影响分析</h2>
+            <p>输入目标文件，查找引用证据、可能影响范围和建议补充的回归测试。</p>
+          </a>
+          <a class="feature-card" href="/review">
+            <span class="feature-kicker">Git Diff</span>
+            <h2>Diff Review</h2>
+            <p>分析当前仓库未提交变更，输出风险点、测试建议和关键文件证据。</p>
+          </a>
+          <a class="feature-card" href="/eval">
+            <span class="feature-kicker">Quality Gate</span>
+            <h2>评测报告</h2>
+            <p>查看离线评测结果，确认 Agent 主链路、工具和代码仓库问答是否保持稳定。</p>
+          </a>
         </section>
       </main>
     </div>
-    <script src="/static/app.js?v=codebase-overview-report-20260713"></script>
+    <script src="/static/app.js?v=markdown-table-20260720"></script>
   </body>
 </html>

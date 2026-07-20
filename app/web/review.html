@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diff Review - 代码仓库理解 Agent</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-page="review">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/">
+          <span>Codebase AgentOps Studio</span>
+          <strong>代码仓库理解 Agent</strong>
+        </a>
+        <nav class="nav-list" aria-label="页面导航">
+          <a href="/">功能首页</a>
+          <a href="/overview">仓库概览</a>
+          <a href="/ask">代码问答</a>
+          <a href="/impact">影响分析</a>
+          <a class="active" href="/review">Diff Review</a>
+          <a href="/eval">评测报告</a>
+        </nav>
+      </aside>
+      <main class="workspace">
+        <section class="toolbar">
+          <div><span class="status-dot"></span><span id="healthStatus">检查中</span></div>
+          <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI</a>
+        </section>
+        <section class="tool-layout">
+          <form class="tool-form" id="reviewForm">
+            <p class="eyebrow">Git Diff Review</p>
+            <h1>Diff Review</h1>
+            <p class="form-copy">面向提交前自查，读取当前 git diff 并输出风险点、证据和测试建议。</p>
+            <label>
+              <span>仓库路径</span>
+              <input id="reviewRepo" value="." autocomplete="off" />
+            </label>
+            <button type="submit">分析当前 Diff</button>
+          </form>
+          <article class="result-pane">
+            <header><h2>Review 报告</h2><span class="tag">/codebase/review-diff</span></header>
+            <div id="reviewOutput" class="markdown-output empty">Diff Review 结果会显示在这里。</div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/static/app.js?v=markdown-table-20260720"></script>
+  </body>
+</html>

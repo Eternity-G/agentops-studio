@@ -20,6 +20,9 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
+# Local development server logs.
+.uvicorn.*.log
+
 # Build artifacts.
 build/
 dist/

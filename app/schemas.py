@@ -22,7 +22,7 @@ ShortText = Annotated[
 ]
 LongText = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=4000),
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=20000),
 ]
 
 
@@ -202,10 +202,11 @@ class CodebaseOverview(StrictSchema):
     repository_path: ShortText
     project_name: ShortText
     project_type: ShortText
+    analysis_source: ShortText = Field(description="How the report was produced, such as deepseek or static.")
     overview: LongText
     architecture: LongText
     main_modules: list[ShortText] = Field(default_factory=list, max_length=20)
-    entry_points: list[CodeEvidence] = Field(default_factory=list, max_length=10)
+    entry_points: list[CodeEvidence] = Field(default_factory=list, max_length=20)
     setup_hints: list[ShortText] = Field(default_factory=list, max_length=10)
     suggested_questions: list[ShortText] = Field(default_factory=list, max_length=10)
     risk_notes: list[ShortText] = Field(default_factory=list, max_length=10)
